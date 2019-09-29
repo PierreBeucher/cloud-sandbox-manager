@@ -1,0 +1,5 @@
+[local]
+127.0.0.1   ansible_connection=local
+
+[sandbox_instances]
+sandbox1   ansible_user=ubuntu ansible_host=ec2-0.0.0.0.eu-west-3.compute.amazonaws.com

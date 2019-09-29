@@ -1,0 +1,5 @@
+# Key for cloud_sandbox_ssh_key_pub
+ansible_ssh_private_key_file: path_to_private_key
+
+cloud_sandbox_instances_password: somepass
+cloud_sandbox_instances_salt: somesalt
