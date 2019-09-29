@@ -98,4 +98,8 @@
   register: ec2_instances
 
 - debug:
-    msg: "{{ ec2_instances }}"
+    msg: "{{ item.instances[0].public_dns_name }}"
+  loop: "{{ ec2_instances.results }}"
+  loop_control:
+    label: "{{ item.instances[0].public_ip_address }}"
+  when: cloud_sandbox_ec2_instances_state != "absent"
