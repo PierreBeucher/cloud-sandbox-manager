@@ -1,0 +1,4 @@
+- hosts: sandbox_instances
+  become: true
+  roles:
+    - cloud_sandbox_instance

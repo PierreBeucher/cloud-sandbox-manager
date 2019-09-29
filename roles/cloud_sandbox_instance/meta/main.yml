@@ -1,0 +1,4 @@
+dependencies:
+  - role: willshersystems.sshd
+    vars:
+      sshd_PasswordAuthentication: yes

@@ -1,0 +1,5 @@
+- name: ensure password for ubuntu configured
+  user:
+    name: ubuntu
+    password: "{{ cloud_sandbox_instances_password | password_hash('sha512', cloud_sandbox_instances_salt) }}"
+    update_password: always

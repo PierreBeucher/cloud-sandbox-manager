@@ -1,4 +1,5 @@
 .idea/
 *.iml
 .aws*
-inventories/local/group_vars/all/local.yml
+inventories/local/**/local.yml
+inventories/local/hosts
