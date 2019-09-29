@@ -82,10 +82,11 @@
 
 - name: ensure ec2 instances exists
   ec2_instance:
-    name: "{{ cloud_sandbox_ec2_instances_name_prefix }}"
+    name: "{{ cloud_sandbox_ec2_instances_name_prefix }}_{{ item }}"
     aws_access_key: "{{ cloud_sandbox_aws_access_key }}"
     aws_secret_key: "{{ cloud_sandbox_aws_secret_key }}"
     region:  "{{ cloud_sandbox_region }}"
+    state: "{{ cloud_sandbox_ec2_instances_state }}"
     key_name: "{{ cloud_sandbox_key_name }}"
     vpc_subnet_id: "{{ vpc_subnet_out.subnet.id }}"
     instance_type: "{{ cloud_sandbox_ec2_instances_type }}"
@@ -93,3 +94,8 @@
     network:
       assign_public_ip: true
     image_id: "{{ cloud_sandbox_ec2_instances_ami }}"
+  loop: "{{ cloud_sandbox_ec2_instances_names }}"
+  register: ec2_instances
+
+- debug:
+    msg: "{{ ec2_instances }}"
