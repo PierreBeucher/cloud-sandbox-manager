@@ -1,0 +1,81 @@
+- name: ensure VPC exists
+  ec2_vpc_net:
+    name: "{{ cloud_sandbox_vpc_name }}"
+    cidr_block: 10.10.0.0/24
+    region: "{{ cloud_sandbox_region }}"
+  register: vpc_out
+
+- debug:
+    msg: "{{ vpc_out }}"
+
+- name: ensure vpc subnet exists
+  ec2_vpc_subnet:
+    vpc_id: "{{ vpc_out.vpc.id }}"
+    cidr: 10.10.0.0/26
+    region: "{{ cloud_sandbox_region }}"
+  register: vpc_subnet_out
+
+- debug:
+    msg: "{{ vpc_subnet_out }}"
+
+- name: ensure security group exists
+  ec2_group:
+    name: "{{ cloud_sandbox_security_group_name }}"
+    description: "Security Group {{ cloud_sandbox_security_group_name }}"
+    vpc_id: "{{ vpc_out.vpc.id }}"
+    region: "{{ cloud_sandbox_region }}"
+    rules:
+      - proto: tcp
+        from_port: 80
+        to_port: 80
+        cidr_ip: 0.0.0.0/0
+      - proto: tcp
+        from_port: 22
+        to_port: 22
+        cidr_ip: 0.0.0.0/0
+  register: sg_out
+
+- debug:
+    msg: "{{ sg_out }}"
+
+- name: ensure Internet Gateway (IGW) exists
+  ec2_vpc_igw:
+    vpc_id: "{{ vpc_out.vpc.id }}"
+    region: "{{ cloud_sandbox_region }}"
+  register: igw
+
+- debug:
+    msg: "{{ igw }}"
+
+- name: ensure IGW route exists
+  ec2_vpc_route_table:
+    vpc_id: "{{ vpc_out.vpc.id }}"
+    region: "{{ cloud_sandbox_region }}"
+    subnets:
+      - "{{ vpc_subnet_out.subnet.id }}"
+    routes:
+      - dest: 0.0.0.0/0
+        gateway_id: "{{ igw.gateway_id }}"
+  register: igw_route
+
+- name: ensure key pair exists
+  ec2_key:
+    name: "{{ cloud_sandbox_key_name }}"
+    key_material: "{{ cloud_sandbox_ssh_key_pub }}"
+    region:  "{{ cloud_sandbox_region }}"
+  register: key_pair
+
+- debug:
+    msg: "{{ key_pair }}"
+
+- name: ensure ec2 instances exists
+  ec2_instance:
+    name: "{{ cloud_sandbox_ec2_instances_name_prefix }}"
+    region:  "{{ cloud_sandbox_region }}"
+    key_name: "{{ cloud_sandbox_key_name }}"
+    vpc_subnet_id: "{{ vpc_subnet_out.subnet.id }}"
+    instance_type: "{{ cloud_sandbox_ec2_instances_type }}"
+    security_group: "{{ cloud_sandbox_security_group_name }}"
+    network:
+      assign_public_ip: true
+    image_id: "{{ cloud_sandbox_ec2_instances_ami }}"
