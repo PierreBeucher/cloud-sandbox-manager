@@ -1,5 +1,5 @@
 cloud_sandbox_ssh_key_pub: "ssh-rsa AA..."
-cloud_sandbox_instances_state: present
+cloud_sandbox_ec2_instances_state: present
 
 cloud_sandbox_aws_access_key: xxx
 cloud_sandbox_aws_secret_key: yyy
