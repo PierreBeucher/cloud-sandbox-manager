@@ -1,0 +1,32 @@
+# run the CloudFormation stack tasks for desired state and use async to no wait for task end
+# otherwise each item in the loop will have to be completed for the next one to start, which would take too much time
+# instead register the tasks data and use a second loop with async_status to wait for each task to complete
+- name: launch CloudFormation stack asynchronously
+  cloudformation:
+    stack_name: "cloud-sandbox-{{ cloud_sandbox_environment }}-{{ item }}"
+    state: "{{ cloud_sandbox_cloudformation_state  }}"
+    aws_access_key: "{{ cloud_sandbox_aws_access_key }}"
+    aws_secret_key: "{{ cloud_sandbox_aws_secret_key }}"
+    region: "{{ cloud_sandbox_region }}"
+    template_body: "{{ lookup('file', 'files/cloudformation-sandbox.yml') }}"
+    template_parameters:
+      VpcId: "{{ cloud_sandbox_vpc_id }}"
+      InstanceSubnetId: "{{ cloud_sandbox_subnet_id }}"
+      KeyName: "{{ cloud_sandbox_key_name }}"
+      InstanceType: "{{ cloud_sandbox_ec2_instances_type }}"
+      ImageId: "{{ cloud_sandbox_ec2_instances_ami }}"
+      DnsRecord: "{{ item }}.{{ cloud_sandbox_route53_dns_record_suffix }}"
+      HostedZoneName: "{{ cloud_sandbox_route53_hosted_zone_name }}"
+  loop: "{{ cloud_sandbox_ec2_instances_names }}"
+  async: 60 # fire and forget...
+  poll: 0
+  register: cloud_sandbox_cf_tasks
+
+- name: Wait for CloudFormation stack to be in expected state
+  async_status:
+    jid: "{{ item.ansible_job_id }}"
+  register: cloud_sandbox_cf_tasks_status
+  retries: "{{ cloud_sandbox_cloudformation_state_wait_retries }}"
+  delay: "{{ cloud_sandbox_cloudformation_state_wait_delay }}"
+  until: cloud_sandbox_cf_tasks_status.finished
+  loop: "{{ cloud_sandbox_cf_tasks.results }}"

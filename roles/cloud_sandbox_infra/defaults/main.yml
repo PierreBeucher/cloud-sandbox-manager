@@ -1,0 +1,50 @@
+# Environment name for which to create the sandbox
+cloud_sandbox_environment: "default-sandbox"
+
+# desired state of the CloudFormation stack
+cloud_sandbox_cloudformation_state: present
+
+# AWS credentials
+# leave empty to use local ~/.aws or those pointed by env variable
+cloud_sandbox_aws_access_key:
+cloud_sandbox_aws_secret_key:
+
+# AWS region on which to manage sandbox resources
+cloud_sandbox_region: "eu-west-3" # Paris
+
+# instance type to use for EC2 instances
+cloud_sandbox_ec2_instances_type: t2.nano
+
+# Image to use for EC2 instances
+cloud_sandbox_ec2_instances_ami: ami-0ad37dbbe571ce2a1 # Ubuntu 18
+
+# VPC under which manage the sandbox
+# REQUIRED
+# cloud_sandbox_vpc_id: vpc-0f9b02336e1541f62 # crafteo-sandbox-vpc
+
+# Subnet under which manage the sandbox
+# REQUIRED
+# cloud_sandbox_subnet_id: subnet-01231059821fc3b96
+
+# Keypair to use to create EC2 instances
+# cloud_sandbox_key_name: "mysandbox-keypair"
+
+# Suffix that will be used to generate instances DNS records
+# i.e. DNS record will be INSTANCE_NAME.SUFFIX such as [docker1].[formation.crafteo.io]
+# REQUIRED FOR DNS MANAGEMENT
+# cloud_sandbox_route53_dns_record_suffix: mysandbox.foo.bar
+
+# Host zone to be used for DNS
+# REQUIRED FOR DNS MANAGEMENT
+# cloud_sandbox_route53_hosted_zone_name: foo.bar.
+
+# name (and number) of EC2 instances to deploy
+# each item in the list will cause a single instance to be deployed
+# name is used to generate a unique DNS name for the instance (see cloud_sandbox_route53_dns_record_suffix)
+# if DNS record it not used, name is ignored and this list is just used to defined number of deployed instances
+cloud_sandbox_ec2_instances_names:
+  - sandbox
+
+# maximum number of retries and delay when waiting for CloudFormation stack status
+cloud_sandbox_cloudformation_state_wait_retries: 30
+cloud_sandbox_cloudformation_state_wait_delay: 5

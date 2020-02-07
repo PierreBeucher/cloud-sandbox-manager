@@ -1,0 +1,83 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: Deploys an EC2 instance with a Route53 DNS record allowing SSH and HTTP(S)
+Parameters:
+  KeyName:
+    Description: Name of an existing EC2 KeyPair to enable SSH access to the instance
+    Type: 'AWS::EC2::KeyPair::KeyName'
+    ConstraintDescription: must be the name of an existing EC2 KeyPair.
+  InstanceType:
+    Description: EC2 instance type
+    Type: String
+  InstanceSubnetId:
+    Type: String
+    Description: Subnet ID on which to attach Ec2 instance Network Interface
+  VpcId:
+    Type: String
+    Description: VPC ID under which to deploy network components
+  ImageId:
+    Description: EC2 instance image ID
+    Type: String
+  DnsRecord:
+    Description: DNS record to create for Route53 pointing to EC2 instance
+    Type: String
+  HostedZoneName:
+    Description: Name of the Route53 Hosted Zone where to create DNS record
+    Type: String
+  InstanceRootVolumeSize:
+    Description: Size of the root volume for the EC2 instance
+    Type: Number
+    Default: 200
+
+Resources:
+
+  EC2Instance:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: !Ref InstanceType
+      KeyName: !Ref KeyName
+      ImageId: !Ref ImageId
+      NetworkInterfaces:
+        - AssociatePublicIpAddress: "true"
+          DeviceIndex: "0"
+          GroupSet:
+          - !GetAtt InstanceSecurityGroup.GroupId
+          SubnetId:
+            Ref: InstanceSubnetId
+      BlockDeviceMappings:
+        - DeviceName: /dev/sda1
+          Ebs:
+            VolumeSize: !Ref InstanceRootVolumeSize
+
+  InstanceSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: SecurityGroup for an instance of Cloud Sandbox
+      VpcId: !Ref VpcId
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          CidrIp: 0.0.0.0/0
+
+  InstanceDNSRecord:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      HostedZoneName: !Ref HostedZoneName
+      Name: !Ref DnsRecord
+      ResourceRecords:
+        - !GetAtt EC2Instance.PublicIp
+      TTL: '60'
+      Type: A
+
+Outputs:
+  InstanceId:
+    Description: InstanceId of the newly created EC2 instance
+    Value: !Ref EC2Instance

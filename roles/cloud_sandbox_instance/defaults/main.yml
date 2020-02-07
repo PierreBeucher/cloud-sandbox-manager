@@ -1,3 +1,10 @@
+# user used to ssh into instance after creation
+cloud_sandbox_ec2_remote_user: ubuntu
+
+# key used to ssh into instance after creation
+# should match private key associated to cloud_sandbox_key_name
+cloud_sandbox_ec2_ssh_key: ".ssh/sandbox_id_rsa"
+
 cloud_sandbox_instances_user: ubuntu
 cloud_sandbox_instances_password: ""
 cloud_sandbox_instances_salt: ""

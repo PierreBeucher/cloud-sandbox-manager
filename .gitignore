@@ -1,5 +1,5 @@
 .idea/
 *.iml
-.aws*
-inventories/local/**/local.yml
-inventories/local/hosts
+
+# local data
+.ssh
