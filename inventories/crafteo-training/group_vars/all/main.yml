@@ -13,3 +13,5 @@ cloud_sandbox_ec2_instances_names:
 
 # password: Crafteo2020
 cloud_sandbox_instance_password: $1$Super3ec$8GpvT2XRRsPZ0pHf8P6cP0
+
+cloud_sandbox_state: present

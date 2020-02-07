@@ -1,8 +1,11 @@
 # Environment name for which to create the sandbox
 cloud_sandbox_environment: "default-sandbox"
 
+# desired state of the sandbox
+cloud_sandbox_state: present
+
 # desired state of the CloudFormation stack
-cloud_sandbox_cloudformation_state: present
+cloud_sandbox_cloudformation_state: "{{ cloud_sandbox_state }}"
 
 # AWS credentials
 # leave empty to use local ~/.aws or those pointed by env variable
