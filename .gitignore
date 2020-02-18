@@ -3,3 +3,4 @@
 
 # local data
 .ssh
+**/local-override.yml

@@ -6,7 +6,6 @@ cloud_sandbox_ec2_remote_user: ubuntu
 cloud_sandbox_ec2_ssh_key: ".ssh/sandbox_id_rsa"
 
 cloud_sandbox_instances_user: ubuntu
-cloud_sandbox_instances_password: ""
-cloud_sandbox_instances_salt: ""
+cloud_sandbox_instances_password: "" # generate with openssl passwd -salt <salt> -1 <plaintext>
 
 cloud_sandbox_state: present
