@@ -11,7 +11,5 @@ cloud_sandbox_ec2_instances_names:
   - docker1
   - docker2
 
-cloud_sandbox_state: present
-
 # specified in local-override.yml
 # cloud_sandbox_instance_password: xxx
