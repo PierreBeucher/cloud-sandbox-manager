@@ -1,3 +1,6 @@
+# Mix of Jinja2 and AWS templating
+# Jinja2 templating is used only when absolutely necessary (i.e. for loops) and AWS templating is ued otherwise
+# to pass all simple parameters and templating
 AWSTemplateFormatVersion: 2010-09-09
 Description: Deploys an EC2 instance with a Route53 DNS record allowing SSH and HTTP(S)
 Parameters:
@@ -17,8 +20,8 @@ Parameters:
   ImageId:
     Description: EC2 instance image ID
     Type: String
-  DnsRecord:
-    Description: DNS record to create for Route53 pointing to EC2 instance
+  DnsRecordSuffix:
+    Description: DNS record suffix for which to create for Route53 pointing to EC2 instance
     Type: String
   HostedZoneName:
     Description: Name of the Route53 Hosted Zone where to create DNS record
@@ -30,7 +33,9 @@ Parameters:
 
 Resources:
 
-  EC2Instance:
+{% for ec2_instance in cloud_sandbox_ec2_instances_names %}
+
+  EC2Instance{{ ec2_instance[:1] | upper }}{{ ec2_instance[1:] | lower }}:
     Type: AWS::EC2::Instance
     Properties:
       InstanceType: !Ref InstanceType
@@ -47,6 +52,18 @@ Resources:
         - DeviceName: /dev/sda1
           Ebs:
             VolumeSize: !Ref InstanceRootVolumeSize
+
+  InstanceDNSRecord{{ ec2_instance[:1] | upper }}{{ ec2_instance[1:] | lower }}:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      HostedZoneName: !Ref HostedZoneName
+      Name: !Join [ '.', ['{{ ec2_instance }}', !Ref DnsRecordSuffix] ]
+      ResourceRecords:
+        - !GetAtt EC2Instance{{ ec2_instance[:1] | upper }}{{ ec2_instance[1:] | lower }}.PublicIp
+      TTL: '60'
+      Type: A
+
+{% endfor %}
 
   InstanceSecurityGroup:
     Type: AWS::EC2::SecurityGroup
@@ -67,17 +84,9 @@ Resources:
           ToPort: 443
           CidrIp: 0.0.0.0/0
 
-  InstanceDNSRecord:
-    Type: AWS::Route53::RecordSet
-    Properties:
-      HostedZoneName: !Ref HostedZoneName
-      Name: !Ref DnsRecord
-      ResourceRecords:
-        - !GetAtt EC2Instance.PublicIp
-      TTL: '60'
-      Type: A
 
-Outputs:
-  InstanceId:
-    Description: InstanceId of the newly created EC2 instance
-    Value: !Ref EC2Instance
+
+#Outputs:
+#  InstanceId:
+#    Description: InstanceId of the newly created EC2 instance
+#    Value: !Ref EC2Instance
