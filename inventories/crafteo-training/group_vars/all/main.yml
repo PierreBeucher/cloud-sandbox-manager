@@ -10,6 +10,14 @@ cloud_sandbox_route53_hosted_zone_name: training.crafteo.io.
 cloud_sandbox_ec2_instances_names:
   - docker1
   - docker2
+  - docker3
+  - docker4
+  - docker5
+  - docker6
+  - docker7
+  - docker8
+  - docker9
+  - docker10
 
 # specified in local-override.yml
 # cloud_sandbox_instance_password: xxx
