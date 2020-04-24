@@ -5,12 +5,12 @@
 
     - name: add managed instance as hosts
       add_host:
-        name: "{{ item }}.{{ cloud_sandbox_route53_dns_record_suffix }}"
+        name: "{{ item }}.{{ cloud_sandbox_domain_name }}"
         groups:
           - sandbox_ec2_instances
       loop: "{{ cloud_sandbox_ec2_instances_names }}"
       loop_control:
-        label: "{{ item }}.{{ cloud_sandbox_route53_dns_record_suffix }}"
+        label: "{{ item }}.{{ cloud_sandbox_domain_name }}"
       changed_when: false
 
 - hosts: sandbox_ec2_instances

@@ -35,19 +35,16 @@ cloud_sandbox_ec2_instances_ami: ami-0ad37dbbe571ce2a1 # Ubuntu 18
 # Suffix that will be used to generate instances DNS records
 # i.e. DNS record will be INSTANCE_NAME.SUFFIX such as [docker1].[formation.crafteo.io]
 # REQUIRED FOR DNS MANAGEMENT
-# cloud_sandbox_route53_dns_record_suffix: mysandbox.foo.bar
+# cloud_sandbox_domain_name: mysandbox.foo.bar
 
 # Host zone to be used for DNS
-# REQUIRED FOR DNS MANAGEMENT
-# cloud_sandbox_route53_hosted_zone_name: foo.bar.
+# use cloud_sandbox_domain_name with '.' by default
+cloud_sandbox_route53_hosted_zone_name: "{{ cloud_sandbox_domain_name }}."
 
 # name (and number) of EC2 instances to deploy
 # each item in the list will cause a single instance to be deployed
-# name is used to generate a unique DNS name for the instance (see cloud_sandbox_route53_dns_record_suffix)
+# name is used to generate a unique DNS name for the instance (see cloud_sandbox_domain_name)
 # if DNS record it not used, name is ignored and this list is just used to defined number of deployed instances
-cloud_sandbox_ec2_instances_names:
-  - sandbox
-
-# maximum number of retries and delay when waiting for CloudFormation stack status
-cloud_sandbox_cloudformation_state_wait_retries: 30
-cloud_sandbox_cloudformation_state_wait_delay: 5
+cloud_sandbox_ec2_instances_names: []
+# - amelie
+# - bob

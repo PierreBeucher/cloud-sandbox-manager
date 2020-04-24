@@ -1,18 +1,17 @@
 # Cloud Sandbox
 
-Manage sandbox machines and infrastructure on AWS 
+Cloud Sandbox deploys sandbox virtual machines and infrastructure on AWS for various usage via Ansible playbooks.
 
-Cloud Sandbox provides an easy way to deploy sandbox virtual machines and infrastructure in on AWS for various usage via Ansible playbooks.
+Current features:
 
-Currently support:
-
-- 1 or more EC2 instances
-- DNS records attached to each instance public IP
+- user-defined list of EC2 instances with:
+  - DNS records attached to each instances public IP
+  - Basic instance configuration (SSH daemon)
 
 ## Getting started
 
-### Requirements
 
+### Requirements:
 - AWS account with proper rights on CloudFormation and services to use
 - EC2 instances:
   - Existing keypair (to SSH into sandbox instances)
@@ -22,19 +21,50 @@ Currently support:
   - Domain name that you own
   - Proper configureation of (sub)domain name to use on the Route53 Host Zone NS servers
 
-Configure the following variables:
+### Create your inventory
+
+Configure at least the following variables:
 
 ```
-cloud_sandbox_vpc_id: vpc-0f9b02336e1541f62 # crafteo-sandbox-vpc
-cloud_sandbox_subnet_id: subnet-01231059821fc3b96
+# Environment name after which AWS resources will be named
+cloud_sandbox_environment: "my-environment"
 
-cloud_sandbox_key_name: "mysandbox-keypair"
+# VPC and subnet under which create AWS resources (i.e. EC2 instances)
+cloud_sandbox_vpc_id: vpc-012345679910
+cloud_sandbox_subnet_id: subnet-abcdefghijkl
 
-cloud_sandbox_route53_dns_record_suffix: mysandbox.foo.bar
-cloud_sandbox_route53_hosted_zone_name: foo.bar.
+# Existing key name to use to configure EC2 instance
+cloud_sandbox_key_name: "key-name"
+
+# Domain name under which create DNS records for instances
+cloud_sandbox_domain_name: my.domain.org
+
+# List of instances to create
+# Each element is a string which will be used to define DNS record for instance based on cloud_sandbox_domain_name
+# such as amelie.mydomain.org
+cloud_sandbox_ec2_instances_names:
+  - amelie
+  - bob
 ```
 
-See roles defaults for additional variables.
+You can use template inventory `inventories/template`. See roles defaults for additional variables.
 
-### Running sandbox
+### Creating and destroying sandbox
 
+```
+# Create/update
+ansible-playbook -i inventories/template sandbox.yml
+
+# Destroy by setting cloud_sandbox_state=absent
+ansible-playbook -i inventories/template sandbox.yml -e cloud_sandbox_state=absent
+```
+
+Using previous example, sandbox EC2 instances would be available using:
+
+```
+# amelie
+ssh -i key-name.pem ubuntu@amelie.my.domain.org
+
+# bob
+ssh -i key-name.pem ubuntu@bob.my.domain.org
+```
