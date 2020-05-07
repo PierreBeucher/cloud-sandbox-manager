@@ -1,6 +1,6 @@
 - name: ensure password for ubuntu configured
   user:
-    name: ubuntu
-    password: "{{ cloud_sandbox_instance_password }}"
+    name: "{{ cloud_sandbox_ec2_remote_user }}"
+    password: "{{ cloud_sandbox_ec2_remote_password }}"
     update_password: always
   become: true

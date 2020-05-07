@@ -4,3 +4,4 @@
 # local data
 .ssh
 **/local-override.yml
+inventories/crafteo
