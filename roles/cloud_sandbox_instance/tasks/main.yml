@@ -1,3 +1,20 @@
+- name: update apt cache
+  apt:
+    update_cache: yes
+  become: true
+
+- import_role:
+    name: geerlingguy.pip
+  become: true
+
+- import_role:
+    name: geerlingguy.docker
+  become: true
+  vars:
+    docker_users:
+    - "{{ cloud_sandbox_ec2_remote_user }}"
+  tags: [ docker ]
+
 - name: ensure password for ubuntu configured
   user:
     name: "{{ cloud_sandbox_ec2_remote_user }}"

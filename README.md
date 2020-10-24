@@ -10,16 +10,20 @@ Current features:
 
 ## Getting started
 
-
 ### Requirements:
+
 - AWS account with proper rights on CloudFormation and services to use
 - EC2 instances:
   - Existing keypair (to SSH into sandbox instances)
-  - Existing VPC and Subnet 
+  - Existing VPC and Subnet
 - DNS record:
   - Route53 Hosted Zone
   - Domain name that you own
   - Proper configureation of (sub)domain name to use on the Route53 Host Zone NS servers
+- Ansible roles requirements
+  ```sh
+  ansible-galaxy install -r requirements.yml
+  ```
 
 ### Create your inventory
 

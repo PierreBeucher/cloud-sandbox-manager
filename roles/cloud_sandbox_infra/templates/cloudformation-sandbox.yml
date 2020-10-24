@@ -87,8 +87,24 @@ Resources:
           FromPort: 8080
           ToPort: 8099
           CidrIp: 0.0.0.0/0
-
-
+        # Docker Swarm ports
+        # See https://docs.docker.com/network/overlay/#create-an-overlay-network
+        - IpProtocol: tcp
+          FromPort: 2377
+          ToPort: 2377
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 7946
+          ToPort: 7946
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: udp
+          FromPort: 7946
+          ToPort: 7946
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: udp
+          FromPort: 4789
+          ToPort: 4789
+          CidrIp: 0.0.0.0/0
 #Outputs:
 #  InstanceId:
 #    Description: InstanceId of the newly created EC2 instance

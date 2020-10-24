@@ -12,6 +12,7 @@
       loop_control:
         label: "{{ item }}.{{ cloud_sandbox_domain_name }}"
       changed_when: false
+      tags: [ always ]
 
 - hosts: sandbox_ec2_instances
   remote_user: "{{ cloud_sandbox_ec2_remote_user }}"
