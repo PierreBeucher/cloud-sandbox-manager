@@ -7,3 +7,7 @@ cloud_sandbox_ec2_remote_password: "" # generate with openssl passwd -salt <salt
 cloud_sandbox_ec2_ssh_key: ".ssh/sandbox_id_rsa"
 
 cloud_sandbox_state: present
+
+# Whether to enable Docker
+# This will ensure Docker is installed on EC2 instances
+cloud_sandbox_docker_enabled: true

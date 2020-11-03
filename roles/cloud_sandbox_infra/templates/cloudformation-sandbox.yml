@@ -87,6 +87,7 @@ Resources:
           FromPort: 8080
           ToPort: 8099
           CidrIp: 0.0.0.0/0
+{% if cloud_sandbox_docker_enabled | bool %}
         # Docker Swarm ports
         # See https://docs.docker.com/network/overlay/#create-an-overlay-network
         - IpProtocol: tcp
@@ -105,6 +106,7 @@ Resources:
           FromPort: 4789
           ToPort: 4789
           CidrIp: 0.0.0.0/0
+{% endif %}
 #Outputs:
 #  InstanceId:
 #    Description: InstanceId of the newly created EC2 instance

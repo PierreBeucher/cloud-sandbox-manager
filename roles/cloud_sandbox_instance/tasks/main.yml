@@ -13,6 +13,7 @@
   vars:
     docker_users:
     - "{{ cloud_sandbox_ec2_remote_user }}"
+  when: cloud_sandbox_docker_enabled | bool
   tags: [ docker ]
 
 - name: ensure password for ubuntu configured

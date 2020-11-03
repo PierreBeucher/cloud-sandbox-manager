@@ -48,3 +48,7 @@ cloud_sandbox_route53_hosted_zone_name: "{{ cloud_sandbox_domain_name }}."
 cloud_sandbox_ec2_instances_names: []
 # - amelie
 # - bob
+
+# Whether to enable Docker
+# This will cause Docker Swarm ports to be open in SecurityGroup
+cloud_sandbox_docker_enabled: true
