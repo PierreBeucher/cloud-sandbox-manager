@@ -22,3 +22,12 @@
     password: "{{ cloud_sandbox_ec2_remote_password }}"
     update_password: always
   become: true
+  tags: [ after-deploy ]
+  
+# SOmetime a failure prevent SSH handler to be triggered and subsequent runs won't trigger it
+- name: force SSH service restart
+  service:
+    name: sshd
+    state: restarted
+  become: true
+  tags: [ after-deploy ]
