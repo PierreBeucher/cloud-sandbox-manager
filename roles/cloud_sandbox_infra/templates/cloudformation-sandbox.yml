@@ -63,6 +63,16 @@ Resources:
       TTL: '60'
       Type: A
 
+  InstanceDNSRecord{{ ec2_instance[:1] | upper }}{{ ec2_instance[1:] | lower }}Wild:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      HostedZoneName: !Ref HostedZoneName
+      Name: !Join [ '.', ['*.{{ ec2_instance }}', !Ref DnsRecordSuffix] ]
+      ResourceRecords:
+        - !GetAtt EC2Instance{{ ec2_instance[:1] | upper }}{{ ec2_instance[1:] | lower }}.PublicIp
+      TTL: '60'
+      Type: A
+
 {% endfor %}
 
   InstanceSecurityGroup:
