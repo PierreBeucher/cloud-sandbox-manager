@@ -11,3 +11,5 @@ cloud_sandbox_state: present
 # Whether to enable Docker
 # This will ensure Docker is installed on EC2 instances
 cloud_sandbox_docker_enabled: true
+
+cloud_sandbox_swap_file_size_mb: 4096

@@ -1,6 +1,9 @@
 - import_role:
     name: geerlingguy.swap
   become: true
+  vars:
+    swap_file_size_mb: "{{ cloud_sandbox_swap_file_size_mb }}"
+  tags: [ swap ]
 
 - name: update apt cache
   apt:
