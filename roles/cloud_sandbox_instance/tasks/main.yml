@@ -1,3 +1,7 @@
+- import_role:
+    name: geerlingguy.swap
+  become: true
+
 - name: update apt cache
   apt:
     update_cache: yes
@@ -23,8 +27,8 @@
     update_password: always
   become: true
   tags: [ after-deploy ]
-  
-# SOmetime a failure prevent SSH handler to be triggered and subsequent runs won't trigger it
+
+# Sometime a failure prevent SSH handler to be triggered and subsequent runs won't trigger it
 - name: force SSH service restart
   service:
     name: sshd

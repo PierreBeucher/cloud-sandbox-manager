@@ -1,3 +1,4 @@
 - src: willshersystems.sshd
 - src: geerlingguy.pip
 - src: geerlingguy.docker
+- src: geerlingguy.swap
