@@ -1,5 +1,5 @@
-sandbox-create:
+deploy:
 	ansible-playbook -i inventories/crafteo sandbox.yml
 
-sandbox-remove:
+delete:
 	ansible-playbook -i inventories/crafteo sandbox.yml -e cloud_sandbox_state=absent
