@@ -1,74 +1,88 @@
 # Cloud Sandbox
 
-Cloud Sandbox deploys sandbox virtual machines and infrastructure on AWS for various usage via Ansible playbooks.
+Cloud Sandbox deploys sandbox environment on AWS for various usage.
 
-Current features:
-
-- user-defined list of EC2 instances with:
+A sandbox environment consists of EC2 instances with:
   - DNS records attached to each instances public IP
   - Basic instance configuration (SSH daemon)
+  - Docker installation on each instance
+
+Instances are available using human-friendly domain names such as `alice.mydomain.org`.
+
+```mermaid
+graph TD
+    HZ[Route53 Hosted Zone<br>mydomain.org]
+    
+    DNSA[DNS Record<br>alice.mydomain.org]
+    DNSB[DNS Record<br>bob.mydomain.org]
+    
+    EC2A[EC2 instance]
+    EC2B[EC2 instance]
+
+    HZ-.-DNSA
+    HZ-.-DNSB
+
+    DNSA-->EC2A
+    DNSB-->EC2B
+```
 
 ## Getting started
 
-### Requirements:
+Requirements:
 
-- AWS account with proper rights on CloudFormation and services to use
-- EC2 instances:
-  - Existing keypair (to SSH into sandbox instances)
-  - Existing VPC and Subnet
-- DNS record:
-  - Route53 Hosted Zone
-  - Domain name that you own
-  - Proper configureation of (sub)domain name to use on the Route53 Host Zone NS servers
-- Ansible roles requirements
-  ```sh
-  ansible-galaxy install -r requirements.yml
-  ```
+- Ansible 2.9+
+- AWS account with access to CloudFormation and EC2
+- EC2 keypair (to SSH into sandbox instances)
+- Route53 Hosted Zone
 
-### Create your inventory
-
-Configure at least the following variables:
+Define your environment (either in extra vars file or in inventory)
 
 ```
-# Environment name after which AWS resources will be named
-cloud_sandbox_environment: "my-environment"
-
-# VPC and subnet under which create AWS resources (i.e. EC2 instances)
-cloud_sandbox_vpc_id: vpc-012345679910
-cloud_sandbox_subnet_id: subnet-abcdefghijkl
+# cat sandbox-config.yml
+#
+# Domain name under which create DNS records for instances
+# Should match your Route53 Hosted Zone
+cloud_sandbox_domain_name: mydomain.org
 
 # Existing key name to use to configure EC2 instance
 cloud_sandbox_key_name: "key-name"
 
-# Domain name under which create DNS records for instances
-cloud_sandbox_domain_name: my.domain.org
-
 # List of instances to create
-# Each element is a string which will be used to define DNS record for instance based on cloud_sandbox_domain_name
-# such as amelie.mydomain.org
+# Each element will define DNS record for instance such as:
+# - amelie.mydomain.org
+# - bob.mydomain.org
 cloud_sandbox_ec2_instances_names:
-  - amelie
-  - bob
+- amelie
+- bob
 ```
 
-You can use template inventory `inventories/template`. See roles defaults for additional variables.
-
-### Creating and destroying sandbox
+Install dependencies and deploy sandbox:
 
 ```
-# Create/update
-ansible-playbook -i inventories/template sandbox.yml
-
-# Destroy by setting cloud_sandbox_state=absent
-ansible-playbook -i inventories/template sandbox.yml -e cloud_sandbox_state=absent
+ansible-galaxy install -r requirements.yml
+ansible-playbook sandbox.yml -e "@sandbox-config.yml" 
 ```
 
-Using previous example, sandbox EC2 instances would be available using:
+Delete sandbox:
 
 ```
-# amelie
-ssh -i key-name.pem ubuntu@amelie.my.domain.org
-
-# bob
-ssh -i key-name.pem ubuntu@bob.my.domain.org
+ansible-playbook sandbox.yml -e "@sandbox-config.yml" -e cloud_sandbox_state=absent
 ```
+
+## Configuration
+
+### Ansible inventory
+
+You may create an Ansible inventory to better manage your sandbox environment. 
+
+You can use template under `inventories/template` to create your own. See comments in `inventories/template/group_vars/all/main.yml` for common variables and usage.
+
+You can then use more Ansible friendly:
+
+```
+ansible-playbook sandbox.yml -i inventories/yourinventory
+```
+
+### Advanced configuration
+
+See roles default `roles/cloud_sandbox_infra/defaults/main.yml` and  `roles/cloud_sandbox_instance/defaults/main.yml` for variables you can override.
