@@ -1,5 +1,5 @@
 # Environment name for which to create the sandbox
-cloud_sandbox_environment: "default-sandbox"
+cloud_sandbox_environment: "default"
 
 # desired state of the sandbox
 cloud_sandbox_state: present

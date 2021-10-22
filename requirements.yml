@@ -1,4 +1,9 @@
-- src: willshersystems.sshd
-- src: geerlingguy.pip
-- src: geerlingguy.docker
-- src: geerlingguy.swap
+roles:
+- name: willshersystems.sshd
+- name: geerlingguy.pip
+- name: geerlingguy.docker
+- name: geerlingguy.swap
+
+collections:
+- name: amazon.aws
+  version: 1.5.1

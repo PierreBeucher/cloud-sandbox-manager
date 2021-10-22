@@ -5,3 +5,4 @@
 .ssh
 **/local-override.yml
 inventories/crafteo
+sandbox-config.yml
