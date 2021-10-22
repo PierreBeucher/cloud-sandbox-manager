@@ -19,7 +19,7 @@ cloud_sandbox_region: "eu-west-3" # Paris
 cloud_sandbox_ec2_instances_type: t2.nano
 
 # Image to use for EC2 instances
-cloud_sandbox_ec2_instances_ami: ami-0ad37dbbe571ce2a1 # Ubuntu 18
+cloud_sandbox_ec2_instances_ami: ami-06d79c60d7454e2af # Ubuntu 20.04 eu-west-3
 
 # VPC under which manage the sandbox
 # REQUIRED
