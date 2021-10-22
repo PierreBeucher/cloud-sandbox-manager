@@ -60,13 +60,13 @@ Install dependencies and deploy sandbox:
 
 ```
 ansible-galaxy install -r requirements.yml
-ansible-playbook sandbox.yml -e "@sandbox-config.yml" 
+ansible-playbook -e "@sandbox-config.yml" sandbox.yml
 ```
 
-Delete sandbox:
+Destroy sandbox:
 
 ```
-ansible-playbook sandbox.yml -e "@sandbox-config.yml" -e cloud_sandbox_state=absent
+ansible-playbook -e "@sandbox-config.yml" sandbox-destroy.yml 
 ```
 
 ## Configuration

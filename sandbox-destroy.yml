@@ -1,0 +1,7 @@
+- hosts: localhost
+  tasks:
+    - import_role:
+        name: cloud_sandbox_infra
+      vars:
+        # Ensure infra is deleted
+        cloud_sandbox_state: absent
