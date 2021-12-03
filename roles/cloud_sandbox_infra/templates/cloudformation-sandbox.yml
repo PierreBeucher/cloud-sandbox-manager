@@ -97,6 +97,10 @@ Resources:
           FromPort: 8080
           ToPort: 8099
           CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 5000
+          ToPort: 5010
+          CidrIp: 0.0.0.0/0
 {% if cloud_sandbox_docker_enabled | bool %}
         # Docker Swarm ports
         # See https://docs.docker.com/network/overlay/#create-an-overlay-network
