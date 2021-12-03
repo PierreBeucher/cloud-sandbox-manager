@@ -101,6 +101,11 @@ Resources:
           FromPort: 5000
           ToPort: 5010
           CidrIp: 0.0.0.0/0
+        # Linux local port range
+        - IpProtocol: tcp
+          FromPort: 30000
+          ToPort: 32767
+          CidrIp: 0.0.0.0/0
 {% if cloud_sandbox_docker_enabled | bool %}
         # Docker Swarm ports
         # See https://docs.docker.com/network/overlay/#create-an-overlay-network
