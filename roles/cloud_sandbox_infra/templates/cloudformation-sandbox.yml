@@ -85,48 +85,9 @@ Resources:
           FromPort: 22
           ToPort: 22
           CidrIp: 0.0.0.0/0
-        - IpProtocol: tcp
-          FromPort: 80
-          ToPort: 80
-          CidrIp: 0.0.0.0/0
-        - IpProtocol: tcp
-          FromPort: 443
-          ToPort: 443
-          CidrIp: 0.0.0.0/0
-        - IpProtocol: tcp
-          FromPort: 8080
-          ToPort: 8099
-          CidrIp: 0.0.0.0/0
-        - IpProtocol: tcp
-          FromPort: 5000
-          ToPort: 5010
-          CidrIp: 0.0.0.0/0
-        # Linux local port range
-        - IpProtocol: tcp
-          FromPort: 30000
-          ToPort: 32767
-          CidrIp: 0.0.0.0/0
-{% if cloud_sandbox_docker_enabled | bool %}
-        # Docker Swarm ports
-        # See https://docs.docker.com/network/overlay/#create-an-overlay-network
-        - IpProtocol: tcp
-          FromPort: 2377
-          ToPort: 2377
-          CidrIp: 0.0.0.0/0
-        - IpProtocol: tcp
-          FromPort: 7946
-          ToPort: 7946
-          CidrIp: 0.0.0.0/0
-        - IpProtocol: udp
-          FromPort: 7946
-          ToPort: 7946
-          CidrIp: 0.0.0.0/0
-        - IpProtocol: udp
-          FromPort: 4789
-          ToPort: 4789
-          CidrIp: 0.0.0.0/0
-{% endif %}
-#Outputs:
-#  InstanceId:
-#    Description: InstanceId of the newly created EC2 instance
-#    Value: !Ref EC2Instance
+{% for entry in cloud_sandbox_security_group_ports %}
+        - IpProtocol: {{ entry.IpProtocol }}
+          FromPort: {{ entry.FromPort }}
+          ToPort: {{ entry.ToPort }}
+          CidrIp: {{ entry.CidrIp }}
+{% endfor %}
