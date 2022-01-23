@@ -1,5 +1,20 @@
 - hosts: localhost
+  vars:
+    cloud_sandbox_ec2_ssh_key: "{{ playbook_dir }}/.ssh/sandbox"
   tasks:
+    - name: check sandbox SSH key exists locally
+      stat:
+        path: "{{ cloud_sandbox_ec2_ssh_key }}"
+      register: ssh_key_stat
+
+    - name: fail if sandbox SSH key not found
+      when: not ssh_key_stat.stat.exists
+      fail:
+        msg: |-
+          SSH Key not found at {{ cloud_sandbox_ec2_ssh_key }}. 
+          Did you create the EC2 key pair on AWS and saved it locally?
+          Check README.md for details"
+
     - import_role:
         name: cloud_sandbox_infra
 
@@ -18,7 +33,7 @@
   remote_user: "{{ cloud_sandbox_ec2_remote_user }}"
   gather_facts: "{{ cloud_sandbox_state == 'present' }}"
   vars:
-    ansible_ssh_private_key_file: "{{ cloud_sandbox_ec2_ssh_key }}"
+    ansible_ssh_private_key_file: "{{ playbook_dir }}/.ssh/sandbox"
     ansible_ssh_common_args: '-o StrictHostKeyChecking=no'
   roles:
     - role: cloud_sandbox_instance

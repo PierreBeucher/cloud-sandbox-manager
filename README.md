@@ -28,61 +28,73 @@ graph TD
 
 ## Getting started
 
-Requirements:
+
+## Requirements
 
 - Ansible 2.9+
 - AWS account with access to CloudFormation and EC2
-- EC2 keypair (to SSH into sandbox instances)
-- Route53 Hosted Zone
 
-Define your environment (either in extra vars file or in inventory)
+Before creating your Sandbox environment, ake sure mto:
 
-```
-# cat sandbox-config.yml
-#
-# Domain name under which create DNS records for instances
-# Should match your Route53 Hosted Zone
-cloud_sandbox_domain_name: mydomain.org
+- [ ] Create or import an EC2 key pair on AWS and save it locally under `.ssh/sandbox`
+  
+  Create new key pair:
+  - AWS Console: _EC2 > Key Pairs > create key pair_
+  - AWS CLI: 
+    ```sh
+    aws ec2 create-key-pair --key-name my-keypair | jq -r .KeyMaterial > .ssh/sandbox
+    ```
+  Or import existing key pair:
+  - Create SSH key:
+    ```
+    ssh-keygen -t rsa -f .ssh/sandbox
+    ```
+  - AWS Console: _EC2 > Key Pairs > Actions > import key pair_
+  - AWS CLI:
+    ```
+    aws ec2 import-key-pair --key-name my-keypair --public-key-material fileb://.ssh/sandbox.pub
+    ```
+  
+- [ ] Create or ensure a Route53 Hosted Zone exists for your domain name and can be used to create public DNS record
 
-# Existing key name to use to configure EC2 instance
-cloud_sandbox_key_name: "key-name"
+## Deploy sandbox
 
-# List of instances to create
-# Each element will define DNS record for instance such as:
-# - amelie.mydomain.org
-# - bob.mydomain.org
-cloud_sandbox_ec2_instances_names:
-- amelie
-- bob
-```
+Create config file `sandbox-config.yml` with desired config. See [`sandbox-config.example.yml`](./sandbox-config.example.yml) for a full example. 
 
-Install dependencies and deploy sandbox:
+Install dependencies (required only once):
 
 ```
 ansible-galaxy install -r requirements.yml
+```
+
+Deploy Sandbox:
+
+```
 ansible-playbook -e "@sandbox-config.yml" sandbox.yml
+
+# Or
+
+make up
 ```
 
 Destroy sandbox:
 
 ```
 ansible-playbook -e "@sandbox-config.yml" sandbox-destroy.yml 
+
+# Or
+
+make down
 ```
 
-## Configuration
+## Advanced configuration
 
-### Ansible inventory
+`sandbox-config.yml` is an Ansible variable file. All available variables can be found in related Ansible roles `default`:
+- EC2 infra: [`roles/cloud_sandbox_infra/defaults/main.yml`](./roles/cloud_sandbox_infra/defaults/main.yml)
+- Ubuntu instance provisioning: [`roles/cloud_sandbox_instance/defaults/main.yml`](./roles/cloud_sandbox_instance/defaults/main.yml)
 
-You may create an Ansible inventory to better manage your sandbox environment. 
-
-You can use template under `inventories/template` to create your own. See comments in `inventories/template/group_vars/all/main.yml` for common variables and usage.
-
-You can then use more Ansible friendly:
+You may also create an Ansible inventory such as `inventories/my-environment` based on `inventories/template` and deploy Sandbox with:
 
 ```
-ansible-playbook sandbox.yml -i inventories/yourinventory
+ansible-playbook -i inventories/my-environment sandbox.yml
 ```
-
-### Advanced configuration
-
-See roles default `roles/cloud_sandbox_infra/defaults/main.yml` and  `roles/cloud_sandbox_instance/defaults/main.yml` for variables you can override.

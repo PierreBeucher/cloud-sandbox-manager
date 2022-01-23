@@ -1,0 +1,59 @@
+# Example config to create two instances:
+# - alice.training.crafteo.io
+# - bob.training.crafteo.io
+# 
+# Accessible via 
+#
+#  ssh ubuntu@alice.training.crafteo.io
+#  password: see cloud_sandbox_ec2_remote_password below
+# 
+
+# EC2 key pair name on AWS with which EC2 instances will be created
+# Make sure related private key exists under .ssh/sandox
+cloud_sandbox_key_name: "my-sandbox-key"
+
+# Domain name to use for DNS record attached to instances
+# Make sure related Route53 Hosted Zone exists
+# or override cloud_sandbox_route53_hosted_zone_name with Hosted Zone to use for DNS records
+cloud_sandbox_domain_name: training.crafteo.io
+
+# Password to authenticate with ubuntu user
+# Defined with
+#  
+#   openssl passwd -salt <salt> -1 <plaintext>
+#  
+cloud_sandbox_ec2_remote_password: 
+
+# Instance names to be created
+# Will be available under {{ item }}.{{ cloud_sandbox_domain_name }} 
+# with related DNS records on Route53
+cloud_sandbox_ec2_instances_names:
+- alice      # alice.training.crafteo.io
+- bob        # bob.training.crafteo.io
+
+# Additional port to open on EC2 Security Group
+# Port 22 is open for 0.0.0.0/0 by default
+# List of CloudFormation AWS::EC2::SecurityGroupIngress
+# See detailed syntax: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-security-group-ingress.html
+cloud_sandbox_security_group_ports: 
+- IpProtocol: tcp
+  FromPort: 80
+  ToPort: 90
+  CidrIp: 0.0.0.0/0
+- IpProtocol: tcp
+  FromPort: 443
+  ToPort: 443
+  CidrIp: 0.0.0.0/0
+
+# Instance type to be created
+# Default to t2.nano
+# cloud_sandbox_ec2_instances_type: t2.large
+
+# Sandbox will be created under default VPC 
+# To override VPC / subnet, specify:
+# cloud_sandbox_vpc_id: vpc-xxx
+# cloud_sandbox_subnet_id: subnet-xxx
+
+# Route53 Hosted Zone match desired hosted name by default
+# To use a different Hosted Zone specify
+# cloud_sandbox_route53_hosted_zone_name: training.crafteo.io.
