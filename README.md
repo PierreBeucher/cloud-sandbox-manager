@@ -6,6 +6,7 @@ A sandbox environment consists of EC2 instances with:
   - DNS records attached to each instances public IP
   - Basic instance configuration (SSH daemon)
   - Docker installation on each instance
+  - [_code-server_](https://coder.com/docs/code-server/latest) available on 8080
 
 Instances are available using human-friendly domain names such as `alice.mydomain.org`.
 

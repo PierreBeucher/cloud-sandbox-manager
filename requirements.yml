@@ -3,6 +3,7 @@ roles:
 - name: geerlingguy.pip
 - name: geerlingguy.docker
 - name: geerlingguy.swap
+- name: pallxk.code_server
 
 collections:
 - name: amazon.aws

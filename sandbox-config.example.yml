@@ -57,3 +57,10 @@ cloud_sandbox_security_group_ports:
 # Route53 Hosted Zone match desired hosted name by default
 # To use a different Hosted Zone specify
 # cloud_sandbox_route53_hosted_zone_name: training.crafteo.io.
+
+# Additional code-server config
+# code-server Will be available under hostname:8080
+# See https://coder.com/docs/code-server/latest
+#
+# Set secure password
+# code_server_password: "ChangeMe!"

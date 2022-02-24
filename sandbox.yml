@@ -35,6 +35,16 @@
   vars:
     ansible_ssh_private_key_file: "{{ playbook_dir }}/.ssh/sandbox"
     ansible_ssh_common_args: '-o StrictHostKeyChecking=no'
+
+    code_server_user: "{{ ansible_user_id }}"
+    code_server_host: "0.0.0.0"
+    code_server_port: 8080
   roles:
+    # Basic instance config
     - role: cloud_sandbox_instance
+      when: cloud_sandbox_state == 'present'
+
+    # code-server config
+    - role: pallxk.code_server
+      tags: [ codeserver ]
       when: cloud_sandbox_state == 'present'
