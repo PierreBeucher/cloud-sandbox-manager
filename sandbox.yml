@@ -32,6 +32,7 @@
 - hosts: sandbox_ec2_instances
   remote_user: "{{ cloud_sandbox_ec2_remote_user }}"
   gather_facts: false
+  tags: [ provision ]
   vars:
     ansible_ssh_private_key_file: "{{ playbook_dir }}/.ssh/sandbox"
     ansible_ssh_common_args: '-o StrictHostKeyChecking=no'
@@ -43,6 +44,8 @@
     - name: Wait for connectivity
       ansible.builtin.wait_for_connection:
         timeout: 180
+    - name: gather facts
+      gather_facts:
   roles:
     # Basic instance config
     - role: cloud_sandbox_instance
