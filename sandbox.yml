@@ -2,6 +2,22 @@
   vars:
     cloud_sandbox_ec2_ssh_key: "{{ playbook_dir }}/.ssh/sandbox"
   tasks:
+    - name: show instance access and URLs
+      tags: [ show ]
+      pause: 
+        seconds: 0
+        prompt: |-
+
+          Web Visual Studio Code: 
+          {% for instance in cloud_sandbox_ec2_instances_names %}
+          http://{{ instance }}.{{ cloud_sandbox_domain_name }}:8080
+          {% endfor %}
+
+          SSH access:
+          {% for instance in cloud_sandbox_ec2_instances_names %}
+          ubuntu@{{ instance }}.{{ cloud_sandbox_domain_name }}
+          {% endfor %}.
+
     - name: check sandbox SSH key exists locally
       stat:
         path: "{{ cloud_sandbox_ec2_ssh_key }}"
