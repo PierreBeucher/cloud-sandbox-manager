@@ -15,7 +15,7 @@
 
           SSH access:
           {% for instance in cloud_sandbox_ec2_instances_names %}
-          ubuntu@{{ instance }}.{{ cloud_sandbox_domain_name }}
+          ssh ubuntu@{{ instance }}.{{ cloud_sandbox_domain_name }}
           {% endfor %}.
 
     - name: check sandbox SSH key exists locally
