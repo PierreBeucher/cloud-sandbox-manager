@@ -38,3 +38,10 @@
     state: restarted
   become: true
   tags: [ after-deploy ]
+
+- name: clone Git repos
+  tags: [ git ]
+  ansible.builtin.git:
+    repo: "{{ item.repo }}"
+    dest: "{{ ansible_env.HOME }}/{{ item.name }}"
+  loop: "{{ cloud_sandbox_clone_git_repos }}"
