@@ -60,7 +60,7 @@ Before creating your Sandbox environment, ake sure mto:
 
 ## Deploy sandbox
 
-Create config file `sandbox-config.yml` with desired config. See [`sandbox-config.example.yml`](./sandbox-config.example.yml) for a full example. 
+Copy template inventory `inventories/sample` to your own and update. See comments for details on each configs.
 
 Install dependencies (required only once):
 
@@ -71,31 +71,17 @@ ansible-galaxy install -r requirements.yml
 Deploy Sandbox:
 
 ```
-ansible-playbook -e "@sandbox-config.yml" sandbox.yml
-
-# Or
-
-make up
+ansible-playbook -i inventories/my-inventory sandbox.yml
 ```
 
 Destroy sandbox:
 
 ```
-ansible-playbook -e "@sandbox-config.yml" sandbox-destroy.yml 
-
-# Or
-
-make down
+ansible-playbook -i inventories/my-inventory sandbox-destroy.yml 
 ```
 
 ## Advanced configuration
 
-`sandbox-config.yml` is an Ansible variable file. All available variables can be found in related Ansible roles `default`:
+See
 - EC2 infra: [`roles/cloud_sandbox_infra/defaults/main.yml`](./roles/cloud_sandbox_infra/defaults/main.yml)
 - Ubuntu instance provisioning: [`roles/cloud_sandbox_instance/defaults/main.yml`](./roles/cloud_sandbox_instance/defaults/main.yml)
-
-You may also create an Ansible inventory such as `inventories/my-environment` based on `inventories/template` and deploy Sandbox with:
-
-```
-ansible-playbook -i inventories/my-environment sandbox.yml
-```

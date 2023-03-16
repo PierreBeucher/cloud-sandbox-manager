@@ -5,6 +5,7 @@ roles:
 - name: geerlingguy.docker
 - name: geerlingguy.swap
 - name: pallxk.code_server
+- name: xanmanning.k3s
 
 collections:
 - name: amazon.aws

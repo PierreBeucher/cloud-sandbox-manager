@@ -36,6 +36,8 @@ cloud_sandbox_ec2_instances_names:
 # List of CloudFormation AWS::EC2::SecurityGroupIngress
 # See detailed syntax: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-security-group-ingress.html
 cloud_sandbox_security_group_ports: 
+
+# HTTP(S)
 - IpProtocol: tcp
   FromPort: 80
   ToPort: 90
@@ -44,6 +46,43 @@ cloud_sandbox_security_group_ports:
   FromPort: 443
   ToPort: 443
   CidrIp: 0.0.0.0/0
+
+# # Open ports for test apps
+# - IpProtocol: tcp
+#   FromPort: 5000
+#   ToPort: 5100
+#   CidrIp: 0.0.0.0/0
+# - IpProtocol: tcp
+#   FromPort: 8080
+#   ToPort: 8190
+#   CidrIp: 0.0.0.0/0
+
+# # K3S
+# # See https://docs.k3s.io/installation/requirements#inbound-rules-for-k3s-server-nodes
+# - IpProtocol: tcp
+#   FromPort: 6443
+#   ToPort: 6443
+#   CidrIp: 0.0.0.0/0
+# - IpProtocol: tcp
+#   FromPort: 51820
+#   ToPort: 51821
+#   CidrIp: 0.0.0.0/0
+# - IpProtocol: tcp
+#   FromPort: 10250
+#   ToPort: 10250
+#   CidrIp: 0.0.0.0/0
+# - IpProtocol: tcp
+#   FromPort: 2379
+#   ToPort: 2380
+#   CidrIp: 0.0.0.0/0
+# - IpProtocol: tcp
+#   FromPort: 8472
+#   ToPort: 8472
+#   CidrIp: 0.0.0.0/0
+# - IpProtocol: tcp # NodePort range for services
+#   FromPort: 31000
+#   ToPort: 31100
+#   CidrIp: 0.0.0.0/0
 
 # Instance type to be created
 # Default to t2.nano

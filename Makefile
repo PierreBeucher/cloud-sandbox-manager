@@ -1,8 +1,8 @@
 up:
-	ansible-playbook -e "@sandbox-config.yml" sandbox.yml
+	ansible-playbook sandbox.yml -i inventories/crafteo
 
 down:
-	ansible-playbook -e "@sandbox-config.yml" sandbox-destroy.yml
+	ansible-playbook sandbox-destroy.yml -i inventories/crafteo
 
 deps:
 	ansible-galaxy install -r requirements.yml

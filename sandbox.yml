@@ -1,6 +1,7 @@
 - hosts: localhost
   vars:
     cloud_sandbox_ec2_ssh_key: "{{ playbook_dir }}/.ssh/sandbox"
+    ansible_python_interpreter: /home/pbeucher/git/formations/cloud-sandbox-manager/.venv/bin/python
   tasks:
     - name: show instance access and URLs
       tags: [ show ]
@@ -71,3 +72,11 @@
     - role: pallxk.code_server
       tags: [ codeserver ]
       when: cloud_sandbox_state == 'present'
+
+# - hosts: k3s_nodes
+#   remote_user: "{{ cloud_sandbox_ec2_remote_user }}"
+#   gather_facts: true
+#   roles:
+#     - role: xanmanning.k3s
+#       tags: [ k3s ]
+#       when: cloud_sandbox_state == 'present'
