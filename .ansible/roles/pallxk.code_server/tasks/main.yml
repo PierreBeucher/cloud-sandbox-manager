@@ -1,0 +1,64 @@
+---
+- name: Check usage of deprecated role variables
+  include_tasks: deprecate.yml
+  when: >
+    tls_cert is defined
+    or tls_key is defined
+    or tls_cert_remote is defined
+    or tls_key_remote is defined
+
+# Always gather facts as we use ansible_user_id and ansible_user_dir
+- name: Gather Facts
+  setup:
+    gather_subset: '!all'
+
+- name: Check systemd version
+  shell: "set -o pipefail; systemctl --version | head -1 | cut -d' ' -f2"
+  args:
+    executable: /bin/bash
+  register: systemctl_version
+  changed_when: no
+
+- name: Create {{ code_server_service_dir }}
+  become: yes
+  file:
+    state: directory
+    path: "{{ code_server_service_dir }}"
+
+- name: Check code-server
+  include_tasks: check-code-server.yml
+
+- import_tasks: install-code-server-legacy.yml
+  when: code_server_major|int < 3
+
+- import_tasks: install-code-server.yml
+  when: code_server_major|int >= 3
+
+- import_tasks: install-code-server-service.yml
+
+- name: Configure code-server
+  include_tasks: configure-code-server.yml
+
+- name: Configure service
+  set_fact:
+    code_server_configure_service: yes
+  tags:
+    - service
+
+- meta: flush_handlers
+
+- name: Enable code-server service
+  become: yes
+  systemd:
+    name: code-server
+    enabled: yes
+  tags:
+    - service
+
+- name: Report
+  include_tasks: report.yml
+
+- name: Sanity Test
+  include_tasks: tests.yml
+  tags:
+    - tests

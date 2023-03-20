@@ -1,0 +1,50 @@
+- name: Check code-server binary exists
+  stat:
+    path: "{{ code_server_bin_dir }}/code-server"
+    follow: yes
+  register: code_server_exists
+
+# This check is compatible with code-server v1, v2 and v3
+#
+# v3.6.0:
+# 3.6.0 a4a03c14922ccaec2a9ff8d1b7b2af8522a4214d
+#
+# v3.5.0:
+# [2020-09-01T06:20:36.864Z] info  Using config file ~/.config/code-server/config.yaml
+# 3.5.0 de41646fc402b968ca6d555fdf2da7de9554d28a
+#
+# v3.4.1:
+# info  Using config file ~/.config/code-server/config.yaml
+# 3.4.1 48f7c2724827e526eeaa6c2c151c520f48a61259
+#
+# v3.0.2:
+# 3.0.2 e480f6527e11344a7c69b7cd024bce9379cea7f0
+#
+# v3:
+# 3.0.0
+#
+# v2:
+# info  2.1698-vsc1.41.1
+# info  f51e045cd5483561afc07694f39307fb673b6d1d
+# info  x64
+#
+# v1:
+# 1.1156-vsc1.33.1
+- name: Check installed code-server version
+  shell: 'set -o pipefail; code-server --version | grep -P -o "(?<=^|info  )\d+(\.\d+)+(-[^ ]+)?"'
+  args:
+    executable: /bin/bash
+  register: code_server_version
+  when: code_server_exists.stat.exists
+  changed_when: no
+
+- name: Check latest code-server version
+  uri:
+    url: https://api.github.com/repos/cdr/code-server/releases
+  register: code_server_releases
+  when: code_server_ver is undefined
+
+- name: Set code-server latest version
+  set_fact:
+    code_server_ver: "{{ code_server_releases.json[0].tag_name }}"
+  when: code_server_ver is undefined

@@ -51,12 +51,6 @@ Configure your Pulumi stack:
   pulumi -C pulumi -s mysandbox up -yrf
   ```
 
-Install Ansible deps (required once):
-
-```
-ansible-galaxy install -r requirements.yml
-```
-
 Configure Ansible inventory:
 
 - Copy template and update for your needs (see comments in template):
