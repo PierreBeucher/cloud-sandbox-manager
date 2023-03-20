@@ -1,4 +1,4 @@
 all:
   hosts:
-    # Must match Pulumi hosts
+    # Must match Pulumi instances (see Pulumi config cloud-sandbox:instances)
     pierre.training.crafteo.io:
