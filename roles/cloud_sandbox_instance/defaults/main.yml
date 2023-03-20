@@ -1,8 +1,4 @@
-# user used to ssh into instance after creation
-cloud_sandbox_ec2_remote_user: ubuntu
 cloud_sandbox_ec2_remote_password: "" # generate with openssl passwd -salt <salt> -1 <plaintext>
-
-cloud_sandbox_state: present
 
 # Whether to enable Docker
 # This will ensure Docker is installed on EC2 instances

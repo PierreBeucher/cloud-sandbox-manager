@@ -1,1 +1,4 @@
-localhost:
+all:
+  hosts:
+    # Must match Pulumi hosts
+    pierre.training.crafteo.io:

@@ -19,13 +19,13 @@
   become: true
   vars:
     docker_users:
-    - "{{ cloud_sandbox_ec2_remote_user }}"
+    - "{{ ansible_user_id }}"
   when: cloud_sandbox_docker_enabled | bool
   tags: [ docker ]
 
 - name: ensure password for ubuntu configured
   user:
-    name: "{{ cloud_sandbox_ec2_remote_user }}"
+    name: "{{ ansible_user_id }}"
     password: "{{ cloud_sandbox_ec2_remote_password }}"
     update_password: always
   become: true

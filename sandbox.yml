@@ -1,82 +1,20 @@
-- hosts: localhost
-  vars:
-    cloud_sandbox_ec2_ssh_key: "{{ playbook_dir }}/.ssh/sandbox"
-    ansible_python_interpreter: /home/pbeucher/git/formations/cloud-sandbox-manager/.venv/bin/python
-  tasks:
-    - name: show instance access and URLs
-      tags: [ show ]
-      pause: 
-        seconds: 0
-        prompt: |-
-
-          Web Visual Studio Code: 
-          {% for instance in cloud_sandbox_ec2_instances_names %}
-          http://{{ instance }}.{{ cloud_sandbox_domain_name }}:8080
-          {% endfor %}
-
-          SSH access:
-          {% for instance in cloud_sandbox_ec2_instances_names %}
-          ssh ubuntu@{{ instance }}.{{ cloud_sandbox_domain_name }}
-          {% endfor %}.
-
-    - name: check sandbox SSH key exists locally
-      stat:
-        path: "{{ cloud_sandbox_ec2_ssh_key }}"
-      register: ssh_key_stat
-
-    - name: fail if sandbox SSH key not found
-      when: not ssh_key_stat.stat.exists
-      fail:
-        msg: |-
-          SSH Key not found at {{ cloud_sandbox_ec2_ssh_key }}. 
-          Did you create the EC2 key pair on AWS and saved it locally?
-          Check README.md for details"
-
-    - import_role:
-        name: cloud_sandbox_infra
-
-    - name: add managed instance as hosts
-      add_host:
-        name: "{{ item }}.{{ cloud_sandbox_domain_name }}"
-        groups:
-          - sandbox_ec2_instances
-      loop: "{{ cloud_sandbox_ec2_instances_names }}"
-      loop_control:
-        label: "{{ item }}.{{ cloud_sandbox_domain_name }}"
-      changed_when: false
-      tags: [ always ]
-
-- hosts: sandbox_ec2_instances
-  remote_user: "{{ cloud_sandbox_ec2_remote_user }}"
+- hosts: all
   gather_facts: false
   tags: [ provision ]
   vars:
-    ansible_ssh_private_key_file: "{{ playbook_dir }}/.ssh/sandbox"
-    ansible_ssh_common_args: '-o StrictHostKeyChecking=no'
-
     code_server_user: "{{ ansible_user_id }}"
     code_server_host: "0.0.0.0"
     code_server_port: 8080
   pre_tasks:
     - name: Wait for connectivity
       ansible.builtin.wait_for_connection:
-        timeout: 180
+        timeout: 5
     - name: gather facts
       gather_facts:
   roles:
     # Basic instance config
     - role: cloud_sandbox_instance
-      when: cloud_sandbox_state == 'present'
 
     # code-server config
     - role: pallxk.code_server
       tags: [ codeserver ]
-      when: cloud_sandbox_state == 'present'
-
-# - hosts: k3s_nodes
-#   remote_user: "{{ cloud_sandbox_ec2_remote_user }}"
-#   gather_facts: true
-#   roles:
-#     - role: xanmanning.k3s
-#       tags: [ k3s ]
-#       when: cloud_sandbox_state == 'present'

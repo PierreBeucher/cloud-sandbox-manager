@@ -1,110 +1,24 @@
-# Example config to create two instances:
-# - alice.training.crafteo.io
-# - bob.training.crafteo.io
-# 
-# Accessible via 
-#
-#  ssh ubuntu@alice.training.crafteo.io
-#  password: see cloud_sandbox_ec2_remote_password below
-# 
-
-# EC2 key pair name on AWS with which EC2 instances will be created
-# Make sure related private key exists under .ssh/sandox
-cloud_sandbox_key_name: "my-sandbox-key"
-
-# Domain name to use for DNS record attached to instances
-# Make sure related Route53 Hosted Zone exists
-# or override cloud_sandbox_route53_hosted_zone_name with Hosted Zone to use for DNS records
-cloud_sandbox_domain_name: training.crafteo.io
-
 # Password to authenticate with ubuntu user
 # Defined with
 #  
 #   openssl passwd -salt <salt> -1 <plaintext>
 #  
-cloud_sandbox_ec2_remote_password: 
+cloud_sandbox_ec2_remote_password: $1$xxx
 
-# Instance names to be created
-# Will be available under {{ item }}.{{ cloud_sandbox_domain_name }} 
-# with related DNS records on Route53
-cloud_sandbox_ec2_instances_names:
-- alice      # alice.training.crafteo.io
-- bob        # bob.training.crafteo.io
+# Code Server password (plain text)
+code_server_password: "Docker2023!"
 
-# Additional port to open on EC2 Security Group
-# Port 22 is open for 0.0.0.0/0 by default
-# List of CloudFormation AWS::EC2::SecurityGroupIngress
-# See detailed syntax: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-security-group-ingress.html
-cloud_sandbox_security_group_ports: 
+# Git repositories to clone in home
+cloud_sandbox_clone_git_repos:
+- name: example-voting-app
+  repo: 'https://github.com/PierreBeucher/example-voting-app.git'
 
-# HTTP(S)
-- IpProtocol: tcp
-  FromPort: 80
-  ToPort: 90
-  CidrIp: 0.0.0.0/0
-- IpProtocol: tcp
-  FromPort: 443
-  ToPort: 443
-  CidrIp: 0.0.0.0/0
+# Probably necessary depending on the instance type used
+# Ubuntu: ubuntu
+# Amazon Linux: ec2-user
+ansible_ssh_user: ubuntu
 
-# # Open ports for test apps
-# - IpProtocol: tcp
-#   FromPort: 5000
-#   ToPort: 5100
-#   CidrIp: 0.0.0.0/0
-# - IpProtocol: tcp
-#   FromPort: 8080
-#   ToPort: 8190
-#   CidrIp: 0.0.0.0/0
-
-# # K3S
-# # See https://docs.k3s.io/installation/requirements#inbound-rules-for-k3s-server-nodes
-# - IpProtocol: tcp
-#   FromPort: 6443
-#   ToPort: 6443
-#   CidrIp: 0.0.0.0/0
-# - IpProtocol: tcp
-#   FromPort: 51820
-#   ToPort: 51821
-#   CidrIp: 0.0.0.0/0
-# - IpProtocol: tcp
-#   FromPort: 10250
-#   ToPort: 10250
-#   CidrIp: 0.0.0.0/0
-# - IpProtocol: tcp
-#   FromPort: 2379
-#   ToPort: 2380
-#   CidrIp: 0.0.0.0/0
-# - IpProtocol: tcp
-#   FromPort: 8472
-#   ToPort: 8472
-#   CidrIp: 0.0.0.0/0
-# - IpProtocol: tcp # NodePort range for services
-#   FromPort: 31000
-#   ToPort: 31100
-#   CidrIp: 0.0.0.0/0
-
-# Instance type to be created
-# Default to t2.nano
-# cloud_sandbox_ec2_instances_type: t2.large
-
-# Sandbox will be created under default VPC 
-# To override VPC / subnet, specify:
-# cloud_sandbox_vpc_id: vpc-xxx
-# cloud_sandbox_subnet_id: subnet-xxx
-
-# Route53 Hosted Zone match desired hosted name by default
-# To use a different Hosted Zone specify
-# cloud_sandbox_route53_hosted_zone_name: training.crafteo.io.
-
-# Additional code-server config
-# code-server Will be available under hostname:8080
-# See https://coder.com/docs/code-server/latest
-#
-# Set secure password
-# code_server_password: "ChangeMe!"
-
-# Cline repositories to automatically clone in home directory
-# cloud_sandbox_clone_git_repos:
-# - name: example-voting-app
-#   repo: 'https://github.com/PierreBeucher/example-voting-app.git'
+# Handy to set SSH keys per environment and faster connection to SSH
+# (considering we deploy sandbox environments it's expected for host key to change regularly)
+# ansible_ssh_private_key_file: "{{ playbook_dir }}/.ssh/crafteo"
+# ansible_ssh_common_args: '-o StrictHostKeyChecking=no'
