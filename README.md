@@ -8,14 +8,14 @@ A sandbox environment consists of EC2 instances with:
   - Docker installation on each instance
   - [_code-server_](https://coder.com/docs/code-server/latest) available on 8080
 
-Instances are available using human-friendly domain names such as `alice.mydomain.org`.
+Instances are available using human-friendly domain names such as `alice.training.crafteo.io`.
 
 ```mermaid
 graph TD
-    HZ[Route53 Hosted Zone<br>mydomain.org]
+    HZ[Route53 Hosted Zone<br>training.crafteo.io]
     
-    DNSA[DNS Record<br>alice.mydomain.org]
-    DNSB[DNS Record<br>bob.mydomain.org]
+    DNSA[DNS Record<br>alice.training.crafteo.io]
+    DNSB[DNS Record<br>bob.training.crafteo.io]
     
     EC2A[EC2 instance]
     EC2B[EC2 instance]
@@ -27,61 +27,49 @@ graph TD
     DNSB-->EC2B
 ```
 
-## Getting started
-
+Infra is deployed with [Pulumi](https://www.pulumi.com/) and each instance is provisioned by [Ansible](https://www.ansible.com/).
 
 ## Requirements
 
+- Pulumi 3.47+
 - Ansible 2.9+
-- AWS account with access to CloudFormation and EC2
+- AWS account with permission on Route53 and EC2
+- An existing Route53 Hosted Zone for your domain name, such as `training.crafteo.io`
 
-Before creating your Sandbox environment, ake sure mto:
+If you use [Nix](https://nixos.org/), simply run `nix develop` for a readily available environment
 
-- [ ] Create or import an EC2 key pair on AWS and save it locally under `.ssh/sandbox`
-  
-  Create new key pair:
-  - AWS Console: _EC2 > Key Pairs > create key pair_
-  - AWS CLI: 
-    ```sh
-    aws ec2 create-key-pair --key-name my-keypair | jq -r .KeyMaterial > .ssh/sandbox
-    ```
-  Or import existing key pair:
-  - Create SSH key:
-    ```
-    ssh-keygen -t rsa -f .ssh/sandbox
-    ```
-  - AWS Console: _EC2 > Key Pairs > Actions > import key pair_
-  - AWS CLI:
-    ```
-    aws ec2 import-key-pair --key-name my-keypair --public-key-material fileb://.ssh/sandbox.pub
-    ```
-  
-- [ ] Create or ensure a Route53 Hosted Zone exists for your domain name and can be used to create public DNS record
+## Deploy
 
-## Deploy sandbox
+Configure your Pulumi stack:
 
-Copy template inventory `inventories/sample` to your own and update. See comments for details on each configs.
+- Copy template and update for your needs (see comments in template):
+  ```sh
+  cp pulumi/Pulumi.template.yaml pulumi/Pulumi.mysandbox.yaml
+  ```
+- Deploy:
+  ```sh
+  pulumi -C pulumi -s mysandbox up -yrf
+  ```
 
-Install dependencies (required only once):
+Install Ansible deps (required once):
 
 ```
 ansible-galaxy install -r requirements.yml
 ```
 
-Deploy Sandbox:
+Configure Ansible inventory:
 
+- Copy template and update for your needs (see comments in template):
+  ```sh
+  cp -R inventories/sample inventories/mysandbox
+  ```
+- Deploy:
+  ```
+  ansible-playbook -i inventories/mysandbox sandbox.yml
+  ```
+
+## Undeploy
+
+```sh
+pulumi -C pulumi -s mysandbox destroy -yrf
 ```
-ansible-playbook -i inventories/my-inventory sandbox.yml
-```
-
-Destroy sandbox:
-
-```
-ansible-playbook -i inventories/my-inventory sandbox-destroy.yml 
-```
-
-## Advanced configuration
-
-See
-- EC2 infra: [`roles/cloud_sandbox_infra/defaults/main.yml`](./roles/cloud_sandbox_infra/defaults/main.yml)
-- Ubuntu instance provisioning: [`roles/cloud_sandbox_instance/defaults/main.yml`](./roles/cloud_sandbox_instance/defaults/main.yml)
