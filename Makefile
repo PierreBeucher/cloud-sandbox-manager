@@ -1,9 +1,6 @@
 up:
-	ansible-playbook sandbox.yml -i inventories/crafteo
+	pulumi -C pulumi -s sandbox up -yrf
+	ansible-playbook sandbox.yml -i inventories/sandbox
 
 down:
-	ansible-playbook sandbox-destroy.yml -i inventories/crafteo
-
-deps:
-	ansible-galaxy install -r requirements.yml
-	pip install -r requirements.txt
+	pulumi -C pulumi -s sandbox destroy -yrf
