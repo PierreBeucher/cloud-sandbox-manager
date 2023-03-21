@@ -1,6 +1,8 @@
+select:
+	pulumi -C pulumi select
+
 up:
-	pulumi -C pulumi -s sandbox up -yrf
-	ansible-playbook sandbox.yml -i inventories/sandbox
+	pulumi -C pulumi up -yrf
 
 down:
-	pulumi -C pulumi -s sandbox destroy -yrf
+	pulumi -C pulumi destroy -yrf

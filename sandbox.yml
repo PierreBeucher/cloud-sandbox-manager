@@ -1,20 +1,22 @@
 - hosts: all
   gather_facts: false
-  tags: [ provision ]
   vars:
-    code_server_user: "{{ ansible_user_id }}"
-    code_server_host: "0.0.0.0"
-    code_server_port: 8080
+    # Git repositories to be cloned in home directory
+    cloud_sandbox_clone_git_repos:
+    - name: example-voting-app
+      repo: 'https://github.com/PierreBeucher/example-voting-app.git'
+      
   pre_tasks:
     - name: Wait for connectivity
       ansible.builtin.wait_for_connection:
         timeout: 5
     - name: gather facts
       gather_facts:
-  roles:
-    # Basic instance config
-    - role: cloud_sandbox_instance
-
-    # code-server config
-    - role: pallxk.code_server
-      tags: [ codeserver ]
+  
+  tasks:
+    - name: clone Git repos
+      tags: [ git ]
+      ansible.builtin.git:
+        repo: "{{ item.repo }}"
+        dest: "{{ ansible_env.HOME }}/{{ item.name }}"
+      loop: "{{ cloud_sandbox_clone_git_repos }}"

@@ -1,8 +1,6 @@
 import * as aws from "@pulumi/aws";
-import { Environment } from "@pulumi/aws/appconfig";
-import { TagOptionResourceAssociation } from "@pulumi/aws/servicecatalog";
 import * as pulumi from "@pulumi/pulumi";
-import { type } from "os";
+import * as nixConfig from './configuration.nix'
 
 const config = new pulumi.Config();
 const environment = config.require("environment")
@@ -11,6 +9,7 @@ const hostedZoneName = config.require("hostedZoneName")
 const instanceAmi = config.require("instanceAmi")
 const instanceType = config.require("instanceType")
 const instances = config.requireObject<string[]>("instances")
+const userPassword = config.require("password")
 
 const commonTags = { 
     Controller: `cloud-sandbox-${environment}`,
@@ -54,7 +53,7 @@ const sg = new aws.ec2.SecurityGroup(`securityGroup`, {
     tags: commonTags,
 });
 
-instances.forEach(name => {
+const instanceOutputs = instances.map(name => {
 
     const fqdn = `${name}.${hostedZoneName}`
 
@@ -67,7 +66,8 @@ instances.forEach(name => {
             volumeSize: 100
         },
         vpcSecurityGroupIds: [sg.id],
-        keyName: keyPair.keyName
+        keyName: keyPair.keyName,
+        userData: nixConfig.getConfigurationNix({ hostname: name, password: userPassword})
     });
     
     const eip = new aws.ec2.Eip(`eip-${name}`, {
@@ -94,6 +94,21 @@ instances.forEach(name => {
         type: "A",
         ttl: 30,
         records: [ eip.publicIp ]
-    });    
+    });
+
+    return {
+       fqdn: fqdn,
+    }
+    
 })
 
+export const access =  instanceOutputs.map(o => {
+    return {
+        fqdn: o.fqdn,
+        ssh: `ssh linux@${o.fqdn}`,
+        url: `https://${o.fqdn}:8080`
+    }
+})
+
+export const foo = "bar"
+export const outputs = JSON.stringify(instanceOutputs)

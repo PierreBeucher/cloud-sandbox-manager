@@ -13,6 +13,8 @@ config:
 
   # Instance config: public key, AMI, type...
   cloud-sandbox:sshPublicKey: ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAICI1Y6EGMdIKqvMed39A2qJonPOo0nmQyitkQBNEgtEQ
-  cloud-sandbox:instanceAmi: ami-0a020411eed98341a # Ubuntu 22.04 eu-west-3 - see https://cloud-images.ubuntu.com/locator/ec2/
+  cloud-sandbox:instanceAmi: ami-0d03a150cf6c07022 # NixOS 22.11 eu-west-3 - https://nixos.org/download.html#nixos-amazon
   cloud-sandbox:instanceType: t3a.nano
   
+  # Password for 'linux' user to connect on Sandbox via SSH
+  cloud-sandbox:password: "SomeSecurePassword!"

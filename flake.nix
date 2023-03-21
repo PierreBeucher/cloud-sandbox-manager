@@ -13,7 +13,6 @@
         pkgs = nixpkgs.legacyPackages.${system}; 
         novopsPkg = novops.packages.${system}.novops;
                 
-        # List of packages
         deployPackages = with pkgs; [
           # Deployment tools
           novopsPkg
@@ -24,6 +23,9 @@
           nodejs-slim
           nodePackages.npm
           ansible
+
+          # Utils
+          libargon2 # Used to hash password for code-server
         ];
       in {
         devShells = {
