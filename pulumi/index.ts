@@ -63,6 +63,9 @@ instances.forEach(name => {
         instanceType: instanceType,
         tags: commonTags,
         volumeTags: commonTags,
+        rootBlockDevice: {
+            volumeSize: 100
+        },
         vpcSecurityGroupIds: [sg.id],
         keyName: keyPair.keyName
     });
