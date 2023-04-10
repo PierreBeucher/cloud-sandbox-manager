@@ -1,3 +1,4 @@
+# Playbook for additional non-Nix configuration
 - hosts: all
   gather_facts: false
   vars:

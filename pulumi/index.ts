@@ -1,6 +1,8 @@
 import * as aws from "@pulumi/aws";
 import * as pulumi from "@pulumi/pulumi";
 import * as nixConfig from './configuration.nix'
+// import * as ansible from './ansible'
+import * as yaml from "js-yaml"
 
 const config = new pulumi.Config();
 const environment = config.require("environment")
@@ -110,5 +112,21 @@ export const access =  instanceOutputs.map(o => {
     }
 })
 
-export const foo = "bar"
 export const outputs = JSON.stringify(instanceOutputs)
+
+// Set Ansible inventory as output
+let hosts: {[key:string]: any} = {};
+instanceOutputs.map(h => {
+    hosts[h.fqdn] = null
+})
+
+export const ansibleInventory = yaml.dump({
+    all: {
+        hosts: hosts,
+        vars: {
+            ansible_ssh_user: "root",
+            ansible_ssh_common_args: "-o StrictHostKeyChecking=no",
+            ansible_ssh_private_key_file: ".ssh/crafteo"
+        }
+    }
+})

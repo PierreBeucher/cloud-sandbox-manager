@@ -2,10 +2,13 @@
     "name": "cloud-sandbox",
     "main": "index.ts",
     "devDependencies": {
-        "@types/node": "^16"
+        "@types/node": "^18.15.11",
+        "typescript": "^5.0.4"
     },
     "dependencies": {
         "@pulumi/aws": "^5.32.0",
-        "@pulumi/pulumi": "^3.0.0"
+        "@pulumi/pulumi": "^3.0.0",
+        "@types/js-yaml": "^4.0.5",
+        "js-yaml": "^4.1.0"
     }
 }

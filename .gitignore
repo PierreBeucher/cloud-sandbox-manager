@@ -1,10 +1,2 @@
-.idea/
-*.iml
 .venv
-
-# local data
 .ssh
-**/local-override.yml
-inventories/*
-!inventories/sample
-sandbox-config.yml
