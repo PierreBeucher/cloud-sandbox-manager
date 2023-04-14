@@ -1,14 +1,12 @@
 # Cloud Sandbox
 
-Cloud Sandbox deploys sandbox environment on AWS for various usage.
+Cloud Sandbox deploys sandbox EC2 instances on AWS. I personally used them for training sessions (Docker, Ansible, etc.) but they can be used for pretty much anything. 
 
-A sandbox environment consists of EC2 instances with:
-  - DNS records attached to each instances public IP
-  - Basic instance configuration (SSH daemon)
-  - Docker installation on each instance
-  - [_code-server_](https://coder.com/docs/code-server/latest) available on 8080
-
-Instances are available using human-friendly domain names such as `alice.training.crafteo.io`.
+Sandboxes provides various tooling and services by default:
+  - Reachable via human-friendly domain names such as `alice.training.crafteo.io`
+  - [_code-server_](https://coder.com/docs/code-server/latest) available on port `8080` (with in-browser terminal)
+  - Direct SSH access on port `22`
+  - Tooling: Docker, Docker Compose, Git, etc.
 
 ```mermaid
 graph TD
@@ -27,43 +25,42 @@ graph TD
     DNSB-->EC2B
 ```
 
-Infra is deployed with [Pulumi](https://www.pulumi.com/) and each instance is provisioned by [Ansible](https://www.ansible.com/).
+Infra is deployed with [Pulumi](https://www.pulumi.com/) and each instance is provisioned by [NixOS](https://nixos.org/)
 
-## Requirements
+## Deploy Sandbox instances
 
-- Pulumi 3.47+
-- Ansible 2.9+
+### Requirements
+
+- [Nix](https://nixos.org/) (provides development shell with Ansible, Pulumi and other dependencies)
 - AWS account with permission on Route53 and EC2
-- An existing Route53 Hosted Zone for your domain name, such as `training.crafteo.io`
+- An existing Route53 Hosted Zone for sandbox domain name, such as `training.crafteo.io`
 
-If you use [Nix](https://nixos.org/), simply run `nix develop` for a readily available environment
+### Deploy
 
-## Deploy
+Run `nix develop` to start a shell with all required dependencies. 
 
-Configure your Pulumi stack:
+```sh
+# Set your sandbox name
+export SANDBOX_NAME=crafteo
 
-- Copy template and update for your needs (see comments in template):
-  ```sh
-  cp pulumi/Pulumi.template.yaml pulumi/Pulumi.mysandbox.yaml
-  ```
-- Deploy:
-  ```sh
-  pulumi -C pulumi -s mysandbox up -yrf
-  ```
+# Copy Pulumi template and adapt to your needs
+cp pulumi/Pulumi.template.yaml pulumi/Pulumi.$SANDBOX_NAME.yaml
 
-Configure Ansible inventory:
+# Deploy sandbox environment with Pulumi and Ansible
+# Prompts for sandbox environment to use
+make up
 
-- Copy template and update for your needs (see comments in template):
-  ```sh
-  cp -R inventories/sample inventories/mysandbox
-  ```
-- Deploy:
-  ```
-  ansible-playbook -i inventories/mysandbox sandbox.yml
-  ```
+# Or run a specific deployment step
+make select     # Select a sandbox instance
+make pulumi     # Deploy Pulumi infra
+make inventory  # Generate Ansible inventory from Pulumi output
+make playbook   # Run additional Ansible config (very short)
+```
 
 ## Undeploy
 
+Destroy Pulumi stack
+
 ```sh
-pulumi -C pulumi -s mysandbox destroy -yrf
+make down
 ```
