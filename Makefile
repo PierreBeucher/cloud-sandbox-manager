@@ -23,3 +23,6 @@ up: select pulumi inventory playbook
 down:
 	pulumi -C pulumi destroy -yrf
 
+.PHONY: test
+test:
+	ansible-playbook test/test-docker.yml -i ansible/inventories/$(shell pulumi -C pulumi stack --show-name).yml

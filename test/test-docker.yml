@@ -1,0 +1,38 @@
+# Test Docker training setup
+# Deploy Example Voting App and other training related applications on sandbox instance
+# and check they're reachable
+- hosts: all
+  tasks:
+
+    # 
+    # Docker setup
+    # 
+    - name: run a simple Docker command
+      command: docker run alpine sh -c "echo foobar"
+
+    # 
+    # Example Voting App
+    # Make sure app can be deployed
+    # And is reachable on port 5000/5001
+    # 
+
+    # Was unable to install required "compose" Python package with NixOS
+    # To use 'community.docker.docker_compose'
+    # Relying on command instead of docker_compose module...
+    - name: deploy Docker Compose app
+      ansible.builtin.command: 
+        cmd: docker compose up -d
+        chdir: "{{ ansible_env.HOME }}/example-voting-app"
+    
+    - name: Check Vote on 5000
+      delegate_to: localhost
+      ansible.builtin.uri:
+        url: http://{{ inventory_hostname }}:5000
+
+    - name: Check Result on 5001
+      delegate_to: localhost
+      ansible.builtin.uri:
+        url: http://{{ inventory_hostname }}:5001
+
+
+      

@@ -32,8 +32,15 @@ export function getConfigurationNix(args: NixConfigArgs): string {
       openssl
       jq
       dive
-      python3
       git
+      
+      # Python and packages (used by Ansible for post-deploy config and tests)
+      (python310.withPackages(ps: with ps; [
+        pip
+        docker
+        docker-compose # this does not fail on rebuild but does not provide "compose" Python module :(
+        pyyaml
+      ]))
 
       # Network
       bind 
