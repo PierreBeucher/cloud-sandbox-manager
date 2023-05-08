@@ -93,6 +93,16 @@
       delay: 10
       until: result_uri is not failed # may take a few seconds to be ready
 
+    # VS Code Server
+    - name: query VS Code URL
+      tags: [ code ]
+      ansible.builtin.uri:
+        url: http://{{ inventory_hostname }}:8080
+      register: vscode_uri
+      retries: 6
+      delay: 10
+      until: vscode_uri is not failed # may take a few seconds to be ready
+
     # TODO
     # ELK
     # Prometheus
