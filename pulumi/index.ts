@@ -1,7 +1,6 @@
 import * as aws from "@pulumi/aws";
 import * as pulumi from "@pulumi/pulumi";
 import * as nixConfig from './configuration.nix'
-// import * as ansible from './ansible'
 import * as yaml from "js-yaml"
 
 const config = new pulumi.Config();
@@ -11,7 +10,9 @@ const hostedZoneName = config.require("hostedZoneName")
 const instanceAmi = config.require("instanceAmi")
 const instanceType = config.require("instanceType")
 const instances = config.requireObject<string[]>("instances")
-const userPassword = config.require("password")
+const linuxUser = config.require("user")
+const linuxUserPassword = config.require("password")
+
 
 const commonTags = { 
     Controller: `cloud-sandbox-${environment}`,
@@ -69,7 +70,11 @@ const instanceOutputs = instances.map(name => {
         },
         vpcSecurityGroupIds: [sg.id],
         keyName: keyPair.keyName,
-        userData: nixConfig.getConfigurationNix({ hostname: name, password: userPassword})
+        userData: nixConfig.getConfigurationNix({ 
+            hostname: name, 
+            user: linuxUser,
+            password: linuxUserPassword
+        })
     });
     
     const eip = new aws.ec2.Eip(`eip-${name}`, {
@@ -124,9 +129,9 @@ export const ansibleInventory = yaml.dump({
     all: {
         hosts: hosts,
         vars: {
-            ansible_ssh_user: "root",
+            ansible_ssh_user: linuxUser,
+            ansible_ssh_pass: linuxUserPassword,
             ansible_ssh_common_args: "-o StrictHostKeyChecking=no",
-            ansible_ssh_private_key_file: ".ssh/crafteo"
         }
     }
 })

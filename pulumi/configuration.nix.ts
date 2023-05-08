@@ -1,13 +1,14 @@
 
 export interface NixConfigArgs{
-  hostname: string
-  password: string,
+  hostname: string,
+  user: string,
+  password: string
 }
 
 export function getConfigurationNix(args: NixConfigArgs): string {
 
   // Sandbox user with passwordless root and docker access
-  const user = "linux"
+  const user = args.user
 
   return `
     { modulesPath, config, pkgs, ... }: {

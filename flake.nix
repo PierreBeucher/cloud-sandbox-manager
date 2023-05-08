@@ -23,6 +23,7 @@
           nodejs-slim
           nodePackages.npm
           ansible
+          sshpass # for Ansible with SSH password
 
           # Utils
           libargon2 # Used to hash password for code-server
