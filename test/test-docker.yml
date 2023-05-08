@@ -1,6 +1,6 @@
-# Test Docker training setup
-# Deploy Example Voting App and other training related applications on sandbox instance
-# and check they're reachable
+# Test Docker training setup for https://docker.training.crafteo.io/ and https://github.com/PierreBeucher/example-voting-app
+# Deploy Example Voting App and other training related applications on sandbox instance and check they're as expected
+# Ensuring trainee will eb able to perform workshops and exercises during training
 - hosts: all
   tasks:
 
@@ -9,30 +9,91 @@
     # 
     - name: run a simple Docker command
       command: docker run alpine sh -c "echo foobar"
+      tags: [ docker ]
+      register: docker_simple_command
+    
+    - name: show simple Docker command output
+      tags: [ docker ]
+      debug:
+        var: docker_simple_command.stdout
 
     # 
-    # Example Voting App
-    # Make sure app can be deployed
-    # And is reachable on port 5000/5001
+    # Example Voting App tests
+    # Make sure app can be deployed And is reachable on port 5000/5001
     # 
 
     # Was unable to install required "compose" Python package with NixOS
     # To use 'community.docker.docker_compose'
     # Relying on command instead of docker_compose module...
     - name: deploy Docker Compose app
+      tags: [ evp ]
       ansible.builtin.command: 
         cmd: docker compose up -d
         chdir: "{{ ansible_env.HOME }}/example-voting-app"
     
-    - name: Check Vote on 5000
+    - name: check Vote on 5000
+      tags: [ evp ]
       delegate_to: localhost
       ansible.builtin.uri:
         url: http://{{ inventory_hostname }}:5000
+      register: vote_task
+      retries: 10
+      delay: 5
+      until: vote_task is not failed # may take a few seconds to start
 
-    - name: Check Result on 5001
+    - name: check Result on 5001
+      tags: [ evp ]
       delegate_to: localhost
       ansible.builtin.uri:
         url: http://{{ inventory_hostname }}:5001
+      register: result_task
+      retries: 10
+      delay: 5
+      until: result_task is not failed # may take a few seconds to start
 
+    - name: create .env var for Traefik with service URL
+      tags: [ traefik ]
+      ansible.builtin.copy:
+        content: |
+          VOTE_URL=vote.{{ inventory_hostname }}
+          RESULT_URL=result.{{ inventory_hostname }}
+        dest: "{{ ansible_env.HOME }}/example-voting-app/.env"
 
-      
+    # Use Let's Encrypt Staging root CA to validate HTTPS config
+    # See https://letsencrypt.org/docs/staging-environment/
+    - name: Download Let's Encrypt staging root CA
+      tags: [ traefik ]
+      ansible.builtin.get_url:
+        url: https://letsencrypt.org/certs/staging/letsencrypt-stg-root-x1.pem
+        dest: /tmp/letsencrypt-stg-root-x1.pem
+
+    - name: deploy with Traefik and Certificates
+      tags: [ traefik ]
+      ansible.builtin.command: 
+        cmd: docker compose -f docker-compose.yml -f resources/traefik.yml up -d
+        chdir: "{{ ansible_env.HOME }}/example-voting-app"
+
+    - name: check Vote HTTPS
+      tags: [ traefik ]
+      ansible.builtin.uri:
+        url: https://vote.{{ inventory_hostname }}
+        ca_path: /tmp/letsencrypt-stg-root-x1.pem
+      register: vote_uri
+      retries: 12
+      delay: 10
+      until: vote_uri is not failed # may take a few seconds to be ready
+    
+    - name: check Result HTTPS
+      tags: [ traefik ]
+      ansible.builtin.uri:
+        url: https://result.{{ inventory_hostname }}
+        ca_path: /tmp/letsencrypt-stg-root-x1.pem
+      register: result_uri
+      retries: 12
+      delay: 10
+      until: result_uri is not failed # may take a few seconds to be ready
+
+    # TODO
+    # ELK
+    # Prometheus
+
