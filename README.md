@@ -37,7 +37,13 @@ Infra is deployed with [Pulumi](https://www.pulumi.com/) and each instance is pr
 
 ### Deploy
 
-Run `nix develop` to start a shell with all required dependencies. 
+Start a Nix shell with all required dependencies:
+
+```sh
+nix develop
+```
+
+Deploy sandbox:
 
 ```sh
 # Set your sandbox name

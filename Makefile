@@ -1,6 +1,7 @@
 .PHONY: select
 select:
-	pulumi -C pulumi stack select
+    # Will prompt is SANDBOX_NAME is unset
+	pulumi -C pulumi stack select ${SANDBOX_NAME} -c
 
 .PHONY: pulumi
 pulumi:
