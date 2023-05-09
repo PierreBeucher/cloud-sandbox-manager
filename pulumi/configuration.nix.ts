@@ -26,6 +26,8 @@ export function getConfigurationNix(args: NixConfigArgs): string {
     environment.systemPackages = with pkgs; [
       
       # Misc
+      busybox
+      vim
       gnupg
       gnumake
       htop
