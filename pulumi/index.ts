@@ -1,8 +1,7 @@
 import * as aws from "@pulumi/aws";
-import { Environment } from "@pulumi/aws/appconfig";
-import { TagOptionResourceAssociation } from "@pulumi/aws/servicecatalog";
 import * as pulumi from "@pulumi/pulumi";
-import { type } from "os";
+import * as nixConfig from './configuration.nix'
+import * as yaml from "js-yaml"
 
 const config = new pulumi.Config();
 const environment = config.require("environment")
@@ -11,6 +10,9 @@ const hostedZoneName = config.require("hostedZoneName")
 const instanceAmi = config.require("instanceAmi")
 const instanceType = config.require("instanceType")
 const instances = config.requireObject<string[]>("instances")
+const linuxUser = config.require("user")
+const linuxUserPassword = config.require("password")
+
 
 const commonTags = { 
     Controller: `cloud-sandbox-${environment}`,
@@ -35,6 +37,7 @@ const sg = new aws.ec2.SecurityGroup(`securityGroup`, {
         { fromPort: 5000, toPort: 5100, protocol: "tcp", cidrBlocks: ["0.0.0.0/0"], ipv6CidrBlocks: ["::/0"] },
         { fromPort: 3000, toPort: 3000, protocol: "tcp", cidrBlocks: ["0.0.0.0/0"], ipv6CidrBlocks: ["::/0"] },
         { fromPort: 8080, toPort: 8190, protocol: "tcp", cidrBlocks: ["0.0.0.0/0"], ipv6CidrBlocks: ["::/0"] },
+        { fromPort: 9090, toPort: 9099, protocol: "tcp", cidrBlocks: ["0.0.0.0/0"], ipv6CidrBlocks: ["::/0"] },
         
         // K3S - see https://docs.k3s.io/installation/requirements#inbound-rules-for-k3s-server-nodes
         { fromPort: 6443, toPort: 6443, protocol: "tcp", cidrBlocks: ["0.0.0.0/0"], ipv6CidrBlocks: ["::/0"] },
@@ -54,7 +57,7 @@ const sg = new aws.ec2.SecurityGroup(`securityGroup`, {
     tags: commonTags,
 });
 
-instances.forEach(name => {
+const instanceOutputs = instances.map(name => {
 
     const fqdn = `${name}.${hostedZoneName}`
 
@@ -67,7 +70,12 @@ instances.forEach(name => {
             volumeSize: 100
         },
         vpcSecurityGroupIds: [sg.id],
-        keyName: keyPair.keyName
+        keyName: keyPair.keyName,
+        userData: nixConfig.getConfigurationNix({ 
+            hostname: name, 
+            user: linuxUser,
+            password: linuxUserPassword
+        })
     });
     
     const eip = new aws.ec2.Eip(`eip-${name}`, {
@@ -94,6 +102,37 @@ instances.forEach(name => {
         type: "A",
         ttl: 30,
         records: [ eip.publicIp ]
-    });    
+    });
+
+    return {
+       fqdn: fqdn,
+    }
+    
 })
 
+export const access =  instanceOutputs.map(o => {
+    return {
+        fqdn: o.fqdn,
+        ssh: `ssh linux@${o.fqdn}`,
+        url: `https://${o.fqdn}:8080`
+    }
+})
+
+export const outputs = JSON.stringify(instanceOutputs)
+
+// Set Ansible inventory as output
+let hosts: {[key:string]: any} = {};
+instanceOutputs.map(h => {
+    hosts[h.fqdn] = null
+})
+
+export const ansibleInventory = yaml.dump({
+    all: {
+        hosts: hosts,
+        vars: {
+            ansible_ssh_user: linuxUser,
+            ansible_ssh_pass: linuxUserPassword,
+            ansible_ssh_common_args: "-o StrictHostKeyChecking=no",
+        }
+    }
+})

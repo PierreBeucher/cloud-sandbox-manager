@@ -13,7 +13,6 @@
         pkgs = nixpkgs.legacyPackages.${system}; 
         novopsPkg = novops.packages.${system}.novops;
                 
-        # List of packages
         deployPackages = with pkgs; [
           # Deployment tools
           novopsPkg
@@ -24,11 +23,20 @@
           nodejs-slim
           nodePackages.npm
           ansible
+          sshpass # for Ansible with SSH password
+
+          # Utils
+          libargon2 # Used to hash password for code-server
+          go # for Terratest
         ];
       in {
         devShells = {
           default = pkgs.mkShell {
             packages = deployPackages;
+
+            shellHook = ''
+              export PULUMI_SKIP_UPDATE_CHECK=1
+            '';
           };
         };
       }

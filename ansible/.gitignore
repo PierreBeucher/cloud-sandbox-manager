@@ -1,0 +1,2 @@
+inventories/*.yml
+!inventories/template.yml

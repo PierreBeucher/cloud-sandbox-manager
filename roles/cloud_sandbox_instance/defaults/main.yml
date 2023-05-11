@@ -1,7 +1,0 @@
-cloud_sandbox_ec2_remote_password: "" # generate with openssl passwd -salt <salt> -1 <plaintext>
-
-# Whether to enable Docker
-# This will ensure Docker is installed on EC2 instances
-cloud_sandbox_docker_enabled: true
-
-cloud_sandbox_swap_file_size_mb: 4096
