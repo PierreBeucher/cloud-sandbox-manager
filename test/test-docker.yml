@@ -103,7 +103,48 @@
       delay: 10
       until: vscode_uri is not failed # may take a few seconds to be ready
 
+    - name: deploy ELK stack
+      tags: [ elk ]
+      ansible.builtin.command: 
+        cmd: make elk
+        chdir: "{{ ansible_env.HOME }}/example-voting-app"
+
+    - name: check Kibana URL
+      tags: [ elk ]
+      ansible.builtin.uri:
+        url: http://{{ inventory_hostname }}:8082
+      register: kibana_uri
+      retries: 60 # may take quite some time to be ready, Kibana is a bit heavy
+      delay: 10
+      until: kibana_uri is not failed 
+
+    - name: check Elasticsearch URL
+      tags: [ elk ]
+      ansible.builtin.uri:
+        url: http://{{ inventory_hostname }}:8091/_cat/indices
+      register: elasticsearch_uri
+      retries: 60 # may take quite some time to be ready, Elasticsearch is a bit heavy
+      delay: 10
+      until: elasticsearch_uri is not failed
+    
+    - name: deploy App stack with logging override
+      tags: [ elk ]    
+      ansible.builtin.command: 
+        cmd: make logging
+        chdir: "{{ ansible_env.HOME }}/example-voting-app"
+
+    - name: check Elasticsearch indice exists
+      tags: [ elk ]
+      ansible.builtin.uri:
+        url: http://{{ inventory_hostname }}:8091/_cat/indices
+        return_content: true
+      register: elasticsearch_uri
+      retries: 6
+      delay: 10
+      # check an indice like "logstash-2023.05.11" exists
+      # if yes, Elastic received some logs from our stack via Logstash as expected
+      until: elasticsearch_uri.content is regex('logstash-[0-9]+')
+
     # TODO
-    # ELK
     # Prometheus
 
