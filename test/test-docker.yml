@@ -51,6 +51,7 @@
       delay: 5
       until: result_task is not failed # may take a few seconds to start
 
+    # Traefik with Let's Encrypt certs
     - name: create .env var for Traefik with service URL
       tags: [ traefik ]
       ansible.builtin.copy:
@@ -103,6 +104,7 @@
       delay: 10
       until: vscode_uri is not failed # may take a few seconds to be ready
 
+    # ELK stack
     - name: deploy ELK stack
       tags: [ elk ]
       ansible.builtin.command: 
@@ -145,6 +147,38 @@
       # if yes, Elastic received some logs from our stack via Logstash as expected
       until: elasticsearch_uri.content is regex('logstash-[0-9]+')
 
-    # TODO
-    # Prometheus
+    - name: down ELK stack
+      ansible.builtin.command: 
+        cmd: make elk-down
+        chdir: "{{ ansible_env.HOME }}/example-voting-app"
 
+    # Prometheus stack
+    - name: clone Prometheus stack Git repos
+      tags: [ prom ]
+      ansible.builtin.git:
+        repo:  https://github.com/PierreBeucher/prometheus.git
+        dest: "{{ ansible_env.HOME }}/prometheus"
+    
+    - name: deploy Prometheus stack
+      tags: [ prom ]    
+      ansible.builtin.command: 
+        cmd: docker compose up -d
+        chdir: "{{ ansible_env.HOME }}/prometheus"
+
+    - name: check Grafana URL
+      tags: [ prom ]
+      ansible.builtin.uri:
+        url: http://{{ inventory_hostname }}:3000
+      register: grafana_uri
+      retries: 12
+      delay: 10
+      until: grafana_uri is not failed
+
+    - name: check Prometheus URL
+      tags: [ prom ]
+      ansible.builtin.uri:
+        url: http://{{ inventory_hostname }}:9090/-/ready
+      register: prom_uri
+      retries: 12
+      delay: 10
+      until: prom_uri is not failed
