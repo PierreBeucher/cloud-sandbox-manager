@@ -2,7 +2,13 @@
 export interface NixConfigArgs{
   hostname: string,
   user: string,
-  password: string
+  password: string,
+  k3s?: {
+    enabled: boolean,
+    role: string,
+    serverAddr: string,
+    token: string
+  }
 }
 
 export function getConfigurationNix(args: NixConfigArgs): string {
@@ -53,6 +59,9 @@ export function getConfigurationNix(args: NixConfigArgs): string {
       docker
       docker-compose
       dive
+
+      # k3s
+      k3s
     ];
 
     # user with password and docker access
@@ -80,6 +89,14 @@ export function getConfigurationNix(args: NixConfigArgs): string {
     virtualisation.docker = {
       enable = true;
       enableOnBoot = true;
+    };
+
+    # k3s
+    services.k3s = {
+      enable = ${args.k3s?.enabled || false};
+      role = "${args.k3s?.role || ''}";
+      token = "${args.k3s?.token || ''}";
+      serverAddr = "${args.k3s?.serverAddr || ''}";
     };
 
     # Allow passwordless sudo

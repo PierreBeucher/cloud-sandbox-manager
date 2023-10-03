@@ -19,3 +19,6 @@ config:
   # Linux user and password user to connect on Sandbox via SSH
   cloud-sandbox:user: docker
   cloud-sandbox:password: "SomeSecurePassword!"
+
+  # k3s config to have all instances form a k3s cluster
+  cloud-sandbox:k3s-enabled: true

@@ -2,6 +2,8 @@ import * as aws from "@pulumi/aws";
 import * as pulumi from "@pulumi/pulumi";
 import * as nixConfig from './configuration.nix'
 import * as yaml from "js-yaml"
+import * as utils from "./utils"
+import * as random from "@pulumi/random";
 
 const config = new pulumi.Config();
 const environment = config.require("environment")
@@ -13,21 +15,72 @@ const instances = config.requireObject<string[]>("instances")
 const linuxUser = config.require("user")
 const linuxUserPassword = config.require("password")
 
-
 const commonTags = { 
     Controller: `cloud-sandbox-${environment}`,
 }
 
+// All instances are created within VPC
+// All IPs are stored in allVpcIps and used as private instance IP
+const vpcCidr = "10.0.0.0/16"
+const vpcCidrStartHex = 0x0A000004 // 10.0.0.4
+const vpcCidrEndHex = 0x0A00fffe // 10.0.255.254
+const allVpcIps = utils.getIpAddressRange(vpcCidrStartHex, vpcCidrEndHex)
+
+// k3s
+const k3sEnabled = config.getBoolean("k3s-enabled") || false
+const k3sServerIp = allVpcIps[0] // k3s server is always first machine in list
+const k3sServerAddr = `https://${k3sServerIp}:6443`
+
+// Random k3s token created at stack creation, do not change during stack life
+const k3sToken = new random.RandomPassword("k3s-token", {
+    length: 30,
+    special: false
+})
+
+// VPC
+const vpc = new aws.ec2.Vpc("vpc", {
+    cidrBlock: vpcCidr,
+});
+
+const subnet = new aws.ec2.Subnet("subnet", {
+    vpcId: vpc.id,
+    cidrBlock: vpcCidr,
+});
+
+const gateway = new aws.ec2.InternetGateway("IGW", {
+    vpcId: vpc.id,
+});
+
+const routeTable = new aws.ec2.RouteTable("rt", {
+    vpcId: vpc.id,
+    routes: [
+        {
+            cidrBlock: "0.0.0.0/0",
+            gatewayId: gateway.id,
+        },
+    ],
+});
+
+const routeTableAssociation = new aws.ec2.RouteTableAssociation("rt-assoc", {
+    subnetId: subnet.id,
+    routeTableId: routeTable.id,
+});
+
+// Instance
 const hostedZone = aws.route53.getZone({ name: hostedZoneName })
 
-const keyPair = new aws.ec2.KeyPair("keyPair", {
+const keyPair = new aws.ec2.KeyPair("key-pair", {
     publicKey: sshPublicKey,
     keyName: `cloud-sandbox-${environment}`,
     tags: commonTags
 })
 
-const sg = new aws.ec2.SecurityGroup(`securityGroup`, {
+const sg = new aws.ec2.SecurityGroup(`security-group`, {
+    vpcId: vpc.id,
     ingress: [
+        // Allow all on internal network
+        { fromPort: 0, toPort: 65535, protocol: "tcp", cidrBlocks: [vpcCidr]},
+
         // SSH HTTP(S)
         { fromPort: 22, toPort: 22, protocol: "tcp", cidrBlocks: ["0.0.0.0/0"], ipv6CidrBlocks: ["::/0"]},
         { fromPort: 80, toPort: 80, protocol: "tcp", cidrBlocks: ["0.0.0.0/0"], ipv6CidrBlocks: ["::/0"] },
@@ -39,13 +92,13 @@ const sg = new aws.ec2.SecurityGroup(`securityGroup`, {
         { fromPort: 8080, toPort: 8190, protocol: "tcp", cidrBlocks: ["0.0.0.0/0"], ipv6CidrBlocks: ["::/0"] },
         { fromPort: 9090, toPort: 9099, protocol: "tcp", cidrBlocks: ["0.0.0.0/0"], ipv6CidrBlocks: ["::/0"] },
         
-        // K3S - see https://docs.k3s.io/installation/requirements#inbound-rules-for-k3s-server-nodes
-        { fromPort: 6443, toPort: 6443, protocol: "tcp", cidrBlocks: ["0.0.0.0/0"], ipv6CidrBlocks: ["::/0"] },
-        { fromPort: 51820, toPort: 51821, protocol: "tcp", cidrBlocks: ["0.0.0.0/0"], ipv6CidrBlocks: ["::/0"] },
-        { fromPort: 10250, toPort: 10250, protocol: "tcp", cidrBlocks: ["0.0.0.0/0"], ipv6CidrBlocks: ["::/0"] },
-        { fromPort: 2380, toPort: 2380, protocol: "tcp", cidrBlocks: ["0.0.0.0/0"], ipv6CidrBlocks: ["::/0"] },
-        { fromPort: 4872, toPort: 4872, protocol: "tcp", cidrBlocks: ["0.0.0.0/0"], ipv6CidrBlocks: ["::/0"] },
-        { fromPort: 31000, toPort: 31100, protocol: "tcp", cidrBlocks: ["0.0.0.0/0"], ipv6CidrBlocks: ["::/0"] },    
+        // // K3S - see https://docs.k3s.io/installation/requirements#inbound-rules-for-k3s-server-nodes
+        // { fromPort: 6443, toPort: 6443, protocol: "tcp", cidrBlocks: ["0.0.0.0/0"], ipv6CidrBlocks: ["::/0"] },
+        // { fromPort: 51820, toPort: 51821, protocol: "tcp", cidrBlocks: ["0.0.0.0/0"], ipv6CidrBlocks: ["::/0"] },
+        // { fromPort: 10250, toPort: 10250, protocol: "tcp", cidrBlocks: ["0.0.0.0/0"], ipv6CidrBlocks: ["::/0"] },
+        // { fromPort: 2380, toPort: 2380, protocol: "tcp", cidrBlocks: ["0.0.0.0/0"], ipv6CidrBlocks: ["::/0"] },
+        // { fromPort: 4872, toPort: 4872, protocol: "tcp", cidrBlocks: ["0.0.0.0/0"], ipv6CidrBlocks: ["::/0"] },
+        // { fromPort: 31000, toPort: 31100, protocol: "tcp", cidrBlocks: ["0.0.0.0/0"], ipv6CidrBlocks: ["::/0"] }
     ],
     egress: [{
         fromPort: 0,
@@ -54,41 +107,66 @@ const sg = new aws.ec2.SecurityGroup(`securityGroup`, {
         cidrBlocks: ["0.0.0.0/0"],
         ipv6CidrBlocks: ["::/0"],
     }],
-    tags: commonTags,
+    tags: {
+        ...commonTags,
+        Name: `Sandbox ${environment}`
+    }
 });
 
-const instanceOutputs = instances.map(name => {
+let instanceOutputs : { fqdn: string }[] = []
 
-    const fqdn = `${name}.${hostedZoneName}`
+for (let i=0; i<instances.length; i++) {
+    const instanceName = instances[i]
+    const instanceIp = allVpcIps[i]
+    const isK3sServer = instanceIp == k3sServerIp
 
-    const ec2Instance = new aws.ec2.Instance(`ec2Instance-${name}`, {
-        ami: instanceAmi,
-        instanceType: instanceType,
-        tags: commonTags,
-        volumeTags: commonTags,
-        rootBlockDevice: {
-            volumeSize: 100
-        },
-        vpcSecurityGroupIds: [sg.id],
-        keyName: keyPair.keyName,
-        userData: nixConfig.getConfigurationNix({ 
-            hostname: name, 
-            user: linuxUser,
-            password: linuxUserPassword
+    const fqdn = `${instanceName}.${hostedZoneName}`
+
+    const ec2Instance = k3sToken.result.apply(k3sTokenResult =>
+        new aws.ec2.Instance(`instance-${instanceName}`, {
+            ami: instanceAmi,
+            instanceType: instanceType,
+            tags: {
+                ...commonTags,
+                Name: `Sandbox ${fqdn}`
+            },
+            volumeTags: commonTags,
+            rootBlockDevice: {
+                volumeSize: 100
+            },
+            vpcSecurityGroupIds: [sg.id],
+            subnetId: subnet.id,
+            privateIp: instanceIp,
+            keyName: keyPair.keyName,
+            userData: nixConfig.getConfigurationNix({ 
+                hostname: instanceName, 
+                user: linuxUser,
+                password: linuxUserPassword,
+                k3s: {
+                    enabled: k3sEnabled,
+                    role: isK3sServer ? "server" : "agent",
+                    // only specify server addr for non-server instance, otherwise server fails to start
+                    serverAddr: isK3sServer ? "" : k3sServerAddr, 
+                    token: k3sTokenResult
+                }
+            })
         })
+    )
+    
+    const eip = new aws.ec2.Eip(`eip-${instanceName}`, {
+        tags: {
+            ...commonTags,
+            Name: `Sandbox ${fqdn}`
+        }
     });
     
-    const eip = new aws.ec2.Eip(`eip-${name}`, {
-        tags: commonTags
-    });
-    
-    const eipAssoc = new aws.ec2.EipAssociation(`eipAssoc-${name}`, {
+    const eipAssoc = new aws.ec2.EipAssociation(`eip-assoc-${instanceName}`, {
         instanceId: ec2Instance.id,
         allocationId: eip.id,
     });
     
     // DNS record using Elastic IP
-    const dnsRecord = new aws.route53.Record(`dns-record-${name}`, {
+    const dnsRecord = new aws.route53.Record(`dns-record-${instanceName}`, {
         zoneId: hostedZone.then(hz => hz.id),
         name: fqdn,
         type: "A",
@@ -96,7 +174,7 @@ const instanceOutputs = instances.map(name => {
         records: [ eip.publicIp],
     });
     
-    const wilddcarDnsRecord = new aws.route53.Record(`wildcard-dns-record-${name}`, {
+    const wilddcarDnsRecord = new aws.route53.Record(`wildcard-dns-record-${instanceName}`, {
         zoneId: hostedZone.then(hz => hz.id),
         name: `*.${fqdn}`,
         type: "A",
@@ -104,11 +182,10 @@ const instanceOutputs = instances.map(name => {
         records: [ eip.publicIp ]
     });
 
-    return {
-       fqdn: fqdn,
-    }
-    
-})
+    instanceOutputs.push({
+        fqdn: fqdn,
+    })   
+}
 
 export const access =  instanceOutputs.map(o => {
     return {

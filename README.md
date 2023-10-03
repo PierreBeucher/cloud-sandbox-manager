@@ -7,6 +7,7 @@ Sandboxes provides various tooling and services by default:
   - [_code-server_](https://coder.com/docs/code-server/latest) available on port `8080` (with in-browser terminal)
   - Direct SSH access on port `22`
   - Tooling: Docker, Docker Compose, Git, etc.
+  - Kubernetes cluster with [k3s](https://k3s.io/) (all instances form a single cluster)
 
 ```mermaid
 graph TD
