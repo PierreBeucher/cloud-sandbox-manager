@@ -14,6 +14,10 @@ const instanceType = config.require("instanceType")
 const instances = config.requireObject<string[]>("instances")
 const linuxUser = config.require("user")
 const linuxUserPassword = config.require("password")
+const linuxUserHashedPassword = config.require("hashedPassword")
+
+const codeServerEnabled = config.getBoolean("codeServerEnabled") || false
+const codeServerHashedPassword = config.get("codeServerHashedPassword") || ""
 
 const commonTags = { 
     Controller: `cloud-sandbox-${environment}`,
@@ -27,7 +31,7 @@ const vpcCidrEndHex = 0x0A00fffe // 10.0.255.254
 const allVpcIps = utils.getIpAddressRange(vpcCidrStartHex, vpcCidrEndHex)
 
 // k3s
-const k3sEnabled = config.getBoolean("k3s-enabled") || false
+const k3sEnabled = config.getBoolean("k3sEnabled") || false
 const k3sServerIp = allVpcIps[0] // k3s server is always first machine in list
 const k3sServerAddr = `https://${k3sServerIp}:6443`
 
@@ -91,14 +95,6 @@ const sg = new aws.ec2.SecurityGroup(`security-group`, {
         { fromPort: 3000, toPort: 3000, protocol: "tcp", cidrBlocks: ["0.0.0.0/0"], ipv6CidrBlocks: ["::/0"] },
         { fromPort: 8080, toPort: 8190, protocol: "tcp", cidrBlocks: ["0.0.0.0/0"], ipv6CidrBlocks: ["::/0"] },
         { fromPort: 9090, toPort: 9099, protocol: "tcp", cidrBlocks: ["0.0.0.0/0"], ipv6CidrBlocks: ["::/0"] },
-        
-        // // K3S - see https://docs.k3s.io/installation/requirements#inbound-rules-for-k3s-server-nodes
-        // { fromPort: 6443, toPort: 6443, protocol: "tcp", cidrBlocks: ["0.0.0.0/0"], ipv6CidrBlocks: ["::/0"] },
-        // { fromPort: 51820, toPort: 51821, protocol: "tcp", cidrBlocks: ["0.0.0.0/0"], ipv6CidrBlocks: ["::/0"] },
-        // { fromPort: 10250, toPort: 10250, protocol: "tcp", cidrBlocks: ["0.0.0.0/0"], ipv6CidrBlocks: ["::/0"] },
-        // { fromPort: 2380, toPort: 2380, protocol: "tcp", cidrBlocks: ["0.0.0.0/0"], ipv6CidrBlocks: ["::/0"] },
-        // { fromPort: 4872, toPort: 4872, protocol: "tcp", cidrBlocks: ["0.0.0.0/0"], ipv6CidrBlocks: ["::/0"] },
-        // { fromPort: 31000, toPort: 31100, protocol: "tcp", cidrBlocks: ["0.0.0.0/0"], ipv6CidrBlocks: ["::/0"] }
     ],
     egress: [{
         fromPort: 0,
@@ -141,7 +137,11 @@ for (let i=0; i<instances.length; i++) {
             userData: nixConfig.getConfigurationNix({ 
                 hostname: instanceName, 
                 user: linuxUser,
-                password: linuxUserPassword,
+                hashedPassword: linuxUserHashedPassword,
+                codeServer: {
+                    enabled: codeServerEnabled,
+                    hashedPassword: codeServerHashedPassword
+                },
                 k3s: {
                     enabled: k3sEnabled,
                     role: isK3sServer ? "server" : "agent",

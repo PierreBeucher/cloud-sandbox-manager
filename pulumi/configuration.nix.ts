@@ -2,12 +2,16 @@
 export interface NixConfigArgs{
   hostname: string,
   user: string,
-  password: string,
+  hashedPassword: string, // hash with mkpasswd
   k3s?: {
     enabled: boolean,
     role: string,
     serverAddr: string,
     token: string
+  }
+  codeServer?: {
+    enabled: boolean,
+    hashedPassword : string,
   }
 }
 
@@ -70,19 +74,17 @@ export function getConfigurationNix(args: NixConfigArgs): string {
       description = "Sandbox user";
       home = "/home/${user}";
       extraGroups = [ "networkmanager" "wheel" "docker" ];
-      initialPassword = "${args.password}";
+      hashedPassword = "${args.hashedPassword}";
     };
 
     # Code Server running for user
     services.code-server = {
-      enable = true;
+      enable = ${args.codeServer?.enabled || false};
       user = "${user}";
       host = "0.0.0.0";
       port = 8080;
       auth = "password";
-      # Hash for "Docker2023!"
-      # Hashed password with echo -n <password> | argon2 <salt> -e
-      hashedPassword = "$argon2i$v=19$m=4096,t=3,p=1$OGJzemtrN0NWdVVERHV5ZXJ5ODZaWnVrNFZkTnBrYU5xand0Wg$N745mNrRadI2E/o7Q4SB7F5SEQDxH6nNo96dRWrXNE8";
+      hashedPassword = "${args.codeServer?.hashedPassword}";
     }; 
 
     # Docker
