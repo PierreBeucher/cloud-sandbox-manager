@@ -95,6 +95,7 @@ const sg = new aws.ec2.SecurityGroup(`security-group`, {
         { fromPort: 3000, toPort: 3000, protocol: "tcp", cidrBlocks: ["0.0.0.0/0"], ipv6CidrBlocks: ["::/0"] },
         { fromPort: 8080, toPort: 8190, protocol: "tcp", cidrBlocks: ["0.0.0.0/0"], ipv6CidrBlocks: ["::/0"] },
         { fromPort: 9090, toPort: 9099, protocol: "tcp", cidrBlocks: ["0.0.0.0/0"], ipv6CidrBlocks: ["::/0"] },
+        { fromPort: 30000, toPort: 32767, protocol: "tcp", cidrBlocks: ["0.0.0.0/0"], ipv6CidrBlocks: ["::/0"] }, // k3s NodePort services
     ],
     egress: [{
         fromPort: 0,

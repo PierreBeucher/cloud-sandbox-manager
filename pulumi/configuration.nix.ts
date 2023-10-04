@@ -99,6 +99,7 @@ export function getConfigurationNix(args: NixConfigArgs): string {
       role = "${args.k3s?.role || ''}";
       token = "${args.k3s?.token || ''}";
       serverAddr = "${args.k3s?.serverAddr || ''}";
+      extraFlags = "--write-kubeconfig-mode=644";
     };
 
     # Allow passwordless sudo
