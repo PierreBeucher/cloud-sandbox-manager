@@ -12,6 +12,7 @@
       ansible.builtin.wait_for_connection:
         timeout: 120
     - name: gather facts
+      tags: [ always ]
       gather_facts:
   
   tasks:
@@ -21,3 +22,24 @@
         repo: "{{ item.repo }}"
         dest: "{{ ansible_env.HOME }}/{{ item.name }}"
       loop: "{{ cloud_sandbox_clone_git_repos }}"
+
+    # Only when K3S enabled 
+    - name: create kube config dir
+      tags: [ k3s ]
+      file:
+        path: "{{ ansible_env.HOME }}/.kube"
+        state: directory
+
+    - name: copy kube config from k3s server
+      tags: [ k3s ]
+      synchronize:
+        src: /etc/rancher/k3s/k3s.yaml
+        dest: "{{ ansible_env.HOME }}/.kube/config"
+      delegate_to: "{{ k3s_server_hostname }}"
+
+    - name: replace localhost by k3s server in k3s kubeconfig
+      tags: [ k3s ]
+      replace:
+        path: "{{ ansible_env.HOME }}/.kube/config"
+        regexp: '(\s+)server: https://127\.0\.0\.1:6443'
+        replace: "\\1server: {{ k3s_server_internal_address }}"

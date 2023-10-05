@@ -32,8 +32,8 @@ const allVpcIps = utils.getIpAddressRange(vpcCidrStartHex, vpcCidrEndHex)
 
 // k3s
 const k3sEnabled = config.getBoolean("k3sEnabled") || false
-const k3sServerIp = allVpcIps[0] // k3s server is always first machine in list
-const k3sServerAddr = `https://${k3sServerIp}:6443`
+const k3sServerInternalIp = allVpcIps[0] // k3s server is always first machine in list
+const k3sServerInternalAddr = `https://${k3sServerInternalIp}:6443`
 
 // Random k3s token created at stack creation, do not change during stack life
 const k3sToken = new random.RandomPassword("k3s-token", {
@@ -115,7 +115,7 @@ let instanceOutputs : { fqdn: string }[] = []
 for (let i=0; i<instances.length; i++) {
     const instanceName = instances[i]
     const instanceIp = allVpcIps[i]
-    const isK3sServer = instanceIp == k3sServerIp
+    const isK3sServer = instanceIp == k3sServerInternalIp
 
     const fqdn = `${instanceName}.${hostedZoneName}`
 
@@ -147,7 +147,7 @@ for (let i=0; i<instances.length; i++) {
                     enabled: k3sEnabled,
                     role: isK3sServer ? "server" : "agent",
                     // only specify server addr for non-server instance, otherwise server fails to start
-                    serverAddr: isK3sServer ? "" : k3sServerAddr, 
+                    serverAddr: isK3sServer ? "" : k3sServerInternalAddr, 
                     token: k3sTokenResult
                 }
             })
@@ -198,11 +198,13 @@ export const access =  instanceOutputs.map(o => {
 
 export const outputs = JSON.stringify(instanceOutputs)
 
-// Set Ansible inventory as output
+// Set Ansible inventory as output to easily write it from stack outputs
 let hosts: {[key:string]: any} = {};
 instanceOutputs.map(h => {
     hosts[h.fqdn] = null
 })
+
+const k3sServerHostname = instanceOutputs[0].fqdn
 
 export const ansibleInventory = yaml.dump({
     all: {
@@ -211,6 +213,8 @@ export const ansibleInventory = yaml.dump({
             ansible_ssh_user: linuxUser,
             ansible_ssh_pass: linuxUserPassword,
             ansible_ssh_common_args: "-o StrictHostKeyChecking=no",
+            k3s_server_hostname: k3sServerHostname,
+            k3s_server_internal_address: k3sServerInternalAddr
         }
     }
 })

@@ -58,14 +58,17 @@ export function getConfigurationNix(args: NixConfigArgs): string {
       # Network
       bind 
       traceroute
+      sshpass
       
       # Docker
       docker
       docker-compose
       dive
 
-      # k3s
+      # K8S
       k3s
+      kubectl
+      helm
     ];
 
     # user with password and docker access
