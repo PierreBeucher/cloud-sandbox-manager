@@ -1,22 +1,35 @@
 /**
- * Get all IP addresses in range. Inspired from https://stackoverflow.com/questions/22927298/create-ip-range-from-start-and-end-point-in-javascript-or-jquery
- * @param start HEX start range
- * @param end HEX range end
- * @returns 
+ * Get all hosts IP addresses from a CIDR block in form 192.168.0.0/24.
+ * Inspired from https://stackoverflow.com/questions/22927298/create-ip-range-from-start-and-end-point-in-javascript-or-jquery
  */
-export function getIpAddressRange(start: number, end: number): string[] {
-    
-    let result : string[] = [] 
+export function getCidrHostIps(cidrBlock: string): string[] {
 
-    for(var i = start; i < end; i++)
-    {   
-        var oc4 = (i>>24) & 0xff;
-        var oc3 = (i>>16) & 0xff;
-        var oc2 = (i>>8) & 0xff;
-        var oc1 = i & 0xff;
-        
-        result.push(oc4 + "." + oc3 + "." + oc2 + "." + oc1);
-        
+    const ipParts = cidrBlock.split("/")[0].split(".")
+
+    // Number of host IPs available with mask
+    const ipMask = parseInt(cidrBlock.split("/")[1], 10)
+    const maxIpCount = Math.pow(2, 32-ipMask)-2
+
+    // convert IP parts to hex
+    const ipPart1 = parseInt(ipParts[0], 10).toString(16).padStart(2, '0')
+    const ipPart2 = parseInt(ipParts[1], 10).toString(16).padStart(2, '0')
+    const ipPart3 = parseInt(ipParts[2], 10).toString(16).padStart(2, '0')
+    const ipPart4 = parseInt(ipParts[3], 10).toString(16).padStart(2, '0')
+
+    const ipRangeStart = parseInt(`${ipPart1}${ipPart2}${ipPart3}${ipPart4}`, 16) + 1
+    const ipRangeEnd = ipRangeStart + maxIpCount
+
+    let result : string[] = []
+    for (let i=ipRangeStart; i<ipRangeEnd; i++){
+        const ipHex = parseInt(i.toString(16), 16)
+
+        const ip1 = (ipHex >> 24) & 0xff
+        const ip2 = (ipHex >> 16) & 0xff
+        const ip3 = (ipHex >> 8) & 0xff
+        const ip4 = ipHex & 0xff
+
+        result.push(`${ip1}.${ip2}.${ip3}.${ip4}`)
     }
+
     return result
 }

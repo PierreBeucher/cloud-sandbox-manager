@@ -23,16 +23,17 @@ const commonTags = {
     Controller: `cloud-sandbox-${environment}`,
 }
 
+
+const vpcCidr = "192.168.0.0/24"
+
 // All instances are created within VPC
-// All IPs are stored in allVpcIps and used as private instance IP
-const vpcCidr = "10.0.0.0/16"
-const vpcCidrStartHex = 0x0A000004 // 10.0.0.4
-const vpcCidrEndHex = 0x0A00fffe // 10.0.255.254
-const allVpcIps = utils.getIpAddressRange(vpcCidrStartHex, vpcCidrEndHex)
+// We want instance private IP to remain the same over time using IPs in this array
+// Remove first 3 and last IPs as they're reserved, see https://docs.aws.amazon.com/vpc/latest/userguide/subnet-sizing.html
+const allVpcHostIps = utils.getCidrHostIps(vpcCidr).slice(3, -1)
 
 // k3s
 const k3sEnabled = config.getBoolean("k3sEnabled") || false
-const k3sServerInternalIp = allVpcIps[0] // k3s server is always first machine in list
+const k3sServerInternalIp = allVpcHostIps[0] // k3s server is always first machine in list
 const k3sServerInternalAddr = `https://${k3sServerInternalIp}:6443`
 
 // Random k3s token created at stack creation, do not change during stack life
@@ -114,7 +115,7 @@ let instanceOutputs : { fqdn: string }[] = []
 
 for (let i=0; i<instances.length; i++) {
     const instanceName = instances[i]
-    const instanceIp = allVpcIps[i]
+    const instanceIp = allVpcHostIps[i]
     const isK3sServer = instanceIp == k3sServerInternalIp
 
     const fqdn = `${instanceName}.${hostedZoneName}`
