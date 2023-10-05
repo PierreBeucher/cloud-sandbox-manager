@@ -32,6 +32,7 @@
 
     - name: copy kube config from k3s server
       tags: [ k3s ]
+      become: true
       synchronize:
         src: /etc/rancher/k3s/k3s.yaml
         dest: "{{ ansible_env.HOME }}/.kube/config"
