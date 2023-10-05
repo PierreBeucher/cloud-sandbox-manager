@@ -64,6 +64,18 @@ make inventory  # Generate Ansible inventory from Pulumi output
 make playbook   # Run additional Ansible config (very short)
 ```
 
+## Tests
+
+Run tests:
+
+```sh
+# Basic test
+make test
+
+# k3s test (needs k3sEnabled: true)
+make test-k3s
+```
+
 ## Undeploy
 
 Destroy Pulumi stack

@@ -27,3 +27,7 @@ down:
 .PHONY: test
 test:
 	ansible-playbook test/test-docker.yml -i ansible/inventories/$(shell pulumi -C pulumi stack --show-name).yml
+
+.PHONY: test-k3s
+test-k3s:
+	ansible-playbook test/test-k3s.yml -i ansible/inventories/$(shell pulumi -C pulumi stack --show-name).yml

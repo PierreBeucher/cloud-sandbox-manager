@@ -1,0 +1,37 @@
+# Test Docker training setup for https://docker.training.crafteo.io/ and https://github.com/PierreBeucher/example-voting-app
+# Deploy Example Voting App and other training related applications on sandbox instance and check they're as expected
+# Ensuring trainee will eb able to perform workshops and exercises during training
+- hosts: all
+  tasks:
+
+    - name: check kubectl works
+      command: kubectl get no
+      changed_when: false
+
+    # node count must match host count
+    - name: check all nodes Ready 
+      command: kubectl get nodes -o jsonpath='{range .items[*]}{@.metadata.name}:{range @.status.conditions[3]}{@.type}={@.status};{end}{"\n"}{end}'
+      register: kubectl_node_result
+      failed_when: kubectl_node_result.stdout_lines | length != groups['all'] | length
+      
+    - name: apply Example Voting App namespace
+      command: kubectl apply -f "{{ ansible_env.HOME }}/example-voting-app/resources/k8s/vote-namespace.yml"
+    
+    - name: apply Example Voting App deployments
+      command: kubectl apply -n vote -f "{{ ansible_env.HOME }}/example-voting-app/resources/k8s"
+      
+    - name: check Vote on 31000
+      ansible.builtin.uri:
+        url: http://{{ inventory_hostname }}:31000
+      register: vote_task
+      retries: 10
+      delay: 5
+      until: vote_task is not failed # may take a few seconds to start
+
+    - name: check Result on 31001
+      ansible.builtin.uri:
+        url: http://{{ inventory_hostname }}:31001
+      register: result_task
+      retries: 10
+      delay: 5
+      until: result_task is not failed # may take a few seconds to start
