@@ -36,6 +36,9 @@
       synchronize:
         src: /etc/rancher/k3s/k3s.yaml
         dest: "{{ ansible_env.HOME }}/.kube/config"
+        rsync_opts:
+        - "--chmod=F600"
+        - "--chown={{ ansible_user_uid }}:{{ ansible_user_gid }}"
       delegate_to: "{{ k3s_server_hostname }}"
 
     - name: replace localhost by k3s server in k3s kubeconfig
