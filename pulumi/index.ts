@@ -12,9 +12,8 @@ const hostedZoneName = config.require("hostedZoneName")
 const instanceAmi = config.require("instanceAmi")
 const instanceType = config.require("instanceType")
 const instances = config.requireObject<string[]>("instances")
-const linuxUser = config.require("user")
-const linuxUserPassword = config.require("password")
-const linuxUserHashedPassword = config.require("hashedPassword")
+const sandboxUser = config.require("user")
+const sandboxUserHashedPassword = config.require("hashedPassword")
 
 const codeServerEnabled = config.getBoolean("codeServerEnabled") || false
 const codeServerHashedPassword = config.get("codeServerHashedPassword") || ""
@@ -138,8 +137,9 @@ for (let i=0; i<instances.length; i++) {
             keyName: keyPair.keyName,
             userData: nixConfig.getConfigurationNix({ 
                 hostname: instanceName, 
-                user: linuxUser,
-                hashedPassword: linuxUserHashedPassword,
+                user: sandboxUser,
+                sshPublicKeys: [ sshPublicKey ],
+                hashedPassword: sandboxUserHashedPassword,
                 codeServer: {
                     enabled: codeServerEnabled,
                     hashedPassword: codeServerHashedPassword
@@ -211,9 +211,9 @@ export const ansibleInventory = yaml.dump({
     all: {
         hosts: hosts,
         vars: {
-            ansible_ssh_user: linuxUser,
-            ansible_ssh_pass: linuxUserPassword,
             ansible_ssh_common_args: "-o StrictHostKeyChecking=no",
+            sandbox_user: sandboxUser,
+            k3s_enabled: k3sEnabled,
             k3s_server_hostname: k3sServerHostname,
             k3s_server_internal_address: k3sServerInternalAddr
         }

@@ -2,6 +2,7 @@
 export interface NixConfigArgs{
   hostname: string,
   user: string,
+  sshPublicKeys?: string[]
   hashedPassword: string, // hash with mkpasswd
   k3s?: {
     enabled: boolean,
@@ -78,6 +79,9 @@ export function getConfigurationNix(args: NixConfigArgs): string {
       home = "/home/${user}";
       extraGroups = [ "networkmanager" "wheel" "docker" ];
       hashedPassword = "${args.hashedPassword}";
+      openssh.authorizedKeys.keys = [
+        "${(args.sshPublicKeys || []).join('" "')}"
+      ];
     };
 
     # Code Server running for user

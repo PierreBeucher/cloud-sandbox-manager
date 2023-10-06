@@ -1,12 +1,7 @@
-# Playbook for additional non-Nix configuration
+# Wait for connectivity and Nix switch
 - hosts: all
-  gather_facts: false
-  vars:
-    # Git repositories to be cloned in home directory
-    cloud_sandbox_clone_git_repos:
-    - name: example-voting-app
-      repo: 'https://github.com/PierreBeucher/example-voting-app.git'
-      
+  gather_facts: false  
+  remote_user: root
   pre_tasks:
     - name: Wait for connectivity
       ansible.builtin.wait_for_connection:
@@ -16,6 +11,21 @@
       gather_facts:
   
   tasks:
+    - name: nixos-rebuild switch
+      become: true
+      ansible.builtin.command: 
+        cmd: nixos-rebuild switch
+
+# Sandbox additional config
+- hosts: all
+  remote_user: "{{ sandbox_user }}"
+  vars:
+    # Git repositories to be cloned in home directory
+    cloud_sandbox_clone_git_repos:
+    - name: example-voting-app
+      repo: 'https://github.com/PierreBeucher/example-voting-app.git'
+  
+  tasks:
     - name: clone Git repos
       tags: [ git ]
       ansible.builtin.git:
@@ -23,27 +33,35 @@
         dest: "{{ ansible_env.HOME }}/{{ item.name }}"
       loop: "{{ cloud_sandbox_clone_git_repos }}"
 
-    # Only when K3S enabled 
-    - name: create kube config dir
-      tags: [ k3s ]
-      file:
-        path: "{{ ansible_env.HOME }}/.kube"
-        state: directory
+    # Only when K3S enabled
+    - name: k3s tasks
+      when: k3s_enabled
+      block:
+      - name: create kube config dir
+        tags: [ k3s ]
+        file:
+          path: "{{ ansible_env.HOME }}/.kube"
+          state: directory
 
-    - name: copy kube config from k3s server
-      tags: [ k3s ]
-      become: true
-      synchronize:
-        src: /etc/rancher/k3s/k3s.yaml
-        dest: "{{ ansible_env.HOME }}/.kube/config"
-        rsync_opts:
-        - "--chmod=F600"
-        - "--chown={{ ansible_user_uid }}:{{ ansible_user_gid }}"
-      delegate_to: "{{ k3s_server_hostname }}"
+      - name: fetch kubeconfig from k3s server
+        become: true
+        tags: [ k3s ]
+        when: inventory_hostname == k3s_server_hostname
+        ansible.builtin.fetch:
+          src: /etc/rancher/k3s/k3s.yaml
+          dest: "{{ playbook_dir }}/kubeconfig.yml"
+          flat: true
 
-    - name: replace localhost by k3s server in k3s kubeconfig
-      tags: [ k3s ]
-      replace:
-        path: "{{ ansible_env.HOME }}/.kube/config"
-        regexp: '(\s+)server: https://127\.0\.0\.1:6443'
-        replace: "\\1server: {{ k3s_server_internal_address }}"
+      - name: copy kube config from k3s server
+        tags: [ k3s ]
+        become: true
+        copy:
+          src: "{{ playbook_dir }}/kubeconfig.yml"
+          dest: "{{ ansible_env.HOME }}/.kube/config"
+
+      - name: replace localhost by k3s server in k3s kubeconfig
+        tags: [ k3s ]
+        replace:
+          path: "{{ ansible_env.HOME }}/.kube/config"
+          regexp: '(\s+)server: https://127\.0\.0\.1:6443'
+          replace: "\\1server: {{ k3s_server_internal_address }}"

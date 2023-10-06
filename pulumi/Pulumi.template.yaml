@@ -18,7 +18,6 @@ config:
   
   # Linux user and password user to connect on Sandbox via SSH
   cloud-sandbox:user: docker
-  cloud-sandbox:password: "Docker2023!" # Only used as Output to ease Ansible inventory generation
   cloud-sandbox:hashedPassword: "$y..." # create with mkpasswd
 
   # Visual Studio Code config
