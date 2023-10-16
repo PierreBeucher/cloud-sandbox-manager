@@ -69,7 +69,7 @@ export function getConfigurationNix(args: NixConfigArgs): string {
       # K8S
       k3s
       kubectl
-      helm
+      kubernetes-helm
     ];
 
     # user with password and docker access

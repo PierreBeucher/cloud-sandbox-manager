@@ -1,2 +1,9 @@
 .venv
 .ssh
+
+# Pulumi
+**/bin/
+**/node_modules/
+node_modules/
+**/Pulumi.*.yaml
+**/!Pulumi.template.yaml

@@ -51,7 +51,7 @@ Deploy sandbox:
 export SANDBOX_NAME=crafteo
 
 # Copy Pulumi template and adapt to your needs
-cp pulumi/Pulumi.template.yaml pulumi/Pulumi.$SANDBOX_NAME.yaml
+cp pulumi/sandox/Pulumi.template.yaml pulumi/sandox/Pulumi.$SANDBOX_NAME.yaml
 
 # Deploy sandbox environment with Pulumi and Ansible
 # Prompts for sandbox environment to use
