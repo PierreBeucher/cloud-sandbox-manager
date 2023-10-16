@@ -18,6 +18,7 @@ up: pulumi inventory playbook
 .PHONY: down
 down:
 	pulumi -C pulumi/sandbox destroy -yrf
+	pulumi -C pulumi/eks destroy -yrf
 
 .PHONY: test
 test:
@@ -26,3 +27,11 @@ test:
 .PHONY: test-k3s
 test-k3s:
 	ansible-playbook test/test-k3s.yml -i ansible/inventories/$(shell pulumi -C pulumi stack --show-name).yml
+
+.PHONY: k8s
+k8s: 
+	pulumi -C pulumi/eks up -yfr
+
+.PHONY: kubeconfig
+kubeconfig: 
+	pulumi -C pulumi/eks stack output kubeconfig > kubeconfig

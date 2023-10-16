@@ -1,0 +1,4 @@
+config:
+  aws:region: eu-west-3
+  cloud-sandbox-eks:environment: crafteo
+  cloud-sandbox-eks:hostedZoneName: k8s.crafteo.io
