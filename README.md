@@ -58,7 +58,6 @@ cp pulumi/Pulumi.template.yaml pulumi/Pulumi.$SANDBOX_NAME.yaml
 make up
 
 # Or run a specific deployment step
-make select     # Select a sandbox instance
 make pulumi     # Deploy Pulumi infra
 make inventory  # Generate Ansible inventory from Pulumi output
 make playbook   # Run additional Ansible config (very short)

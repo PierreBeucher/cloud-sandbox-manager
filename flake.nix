@@ -33,6 +33,8 @@
 
             shellHook = ''
               export PULUMI_SKIP_UPDATE_CHECK=1
+
+              pulumi -C pulumi stack select
             '';
           };
         };

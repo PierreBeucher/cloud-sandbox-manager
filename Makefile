@@ -1,8 +1,3 @@
-.PHONY: select
-select:
-    # Will prompt is SANDBOX_NAME is unset
-	pulumi -C pulumi stack select ${SANDBOX_NAME} -c
-
 .PHONY: pulumi
 pulumi:
 	pulumi -C pulumi up -yrf
@@ -18,7 +13,7 @@ inventory:
 playbook: 
 	ansible-playbook ansible/playbook.yml -i ansible/inventories/$(shell pulumi -C pulumi stack --show-name).yml
 
-up: select pulumi inventory playbook
+up: pulumi inventory playbook
 
 .PHONY: down
 down:
