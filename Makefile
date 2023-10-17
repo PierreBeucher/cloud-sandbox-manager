@@ -7,11 +7,11 @@ ansible: inventory playbook
 
 .PHONY: inventory
 inventory: 
-	pulumi -C pulumi/sandbox stack output ansibleInventory > ansible/inventories/$(shell pulumi -C pulumi stack --show-name).yml
+	pulumi -C pulumi/sandbox stack output ansibleInventory > ansible/inventories/$(shell pulumi -C pulumi/sandbox stack --show-name).yml
 
 .PHONY: playbook
 playbook: 
-	ansible-playbook ansible/playbook.yml -i ansible/inventories/$(shell pulumi -C pulumi stack --show-name).yml
+	ansible-playbook ansible/playbook.yml -i ansible/inventories/$(shell pulumi -C pulumi/sandbox stack --show-name).yml
 
 up: pulumi inventory playbook
 
@@ -22,11 +22,11 @@ down:
 
 .PHONY: test
 test:
-	ansible-playbook test/test-docker.yml -i ansible/inventories/$(shell pulumi -C pulumi stack --show-name).yml
+	ansible-playbook test/test-docker.yml -i ansible/inventories/$(shell pulumi -C pulumi/sandbox stack --show-name).yml
 
 .PHONY: test-k3s
 test-k3s:
-	ansible-playbook test/test-k3s.yml -i ansible/inventories/$(shell pulumi -C pulumi stack --show-name).yml
+	ansible-playbook test/test-k3s.yml -i ansible/inventories/$(shell pulumi -C pulumi/sandbox stack --show-name).yml
 
 .PHONY: k8s
 k8s: 
