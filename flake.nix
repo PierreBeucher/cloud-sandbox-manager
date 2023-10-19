@@ -34,6 +34,9 @@
             shellHook = ''
               export PULUMI_SKIP_UPDATE_CHECK=1
 
+              # Kubeconfig as eks stack output with make kubeconfig
+              export KUBECONFIG=$PWD/kubeconfig
+
               pulumi -C pulumi/sandbox stack select
             '';
           };

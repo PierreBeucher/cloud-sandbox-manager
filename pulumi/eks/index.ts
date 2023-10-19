@@ -1,8 +1,8 @@
 import * as pulumi from "@pulumi/pulumi";
 import * as aws from "@pulumi/aws";
 import * as eks from "@pulumi/eks";
-import * as awsx from "@pulumi/awsx";
 import * as k8s from "@pulumi/kubernetes";
+import { Skooner } from "./skooner"
 
 const awsConfig = new pulumi.Config("aws");
 const awsRegion = awsConfig.require("region")
@@ -143,6 +143,13 @@ traefikService.status.loadBalancer.ingress[0].hostname.apply(lbHostname => {
     })
 })
 
+
+const skooner = new Skooner("skooner",  {
+    fqdn: `skooner.${hostedZoneName}`,
+    namespace: "skooner"
+}, {
+    provider: cluster.provider
+})
 
 // Export cluster kubeconfig
 export const kubeconfig = cluster.kubeconfig;
