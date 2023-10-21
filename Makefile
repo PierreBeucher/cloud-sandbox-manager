@@ -1,7 +1,3 @@
-.PHONY: pulumi
-pulumi:
-	pulumi -C pulumi/sandbox up -yrf
-
 .PHONY: ansible
 ansible: inventory playbook
 
@@ -13,7 +9,7 @@ inventory:
 playbook: 
 	ansible-playbook ansible/playbook.yml -i ansible/inventories/$(shell pulumi -C pulumi/sandbox stack --show-name).yml
 
-up: pulumi inventory playbook
+up: sandbox inventory playbook
 
 .PHONY: down
 down:
@@ -38,3 +34,7 @@ eks:
 .PHONY: kubeconfig
 kubeconfig: 
 	pulumi -C pulumi/eks stack output serviceAccountKubeconfig --show-secrets > kubeconfig
+
+.PHONY: sandbox
+sandbox:
+	pulumi -C pulumi/sandbox up -yrf

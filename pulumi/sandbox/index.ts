@@ -70,6 +70,60 @@ const routeTableAssociation = new aws.ec2.RouteTableAssociation("rt-assoc", {
     routeTableId: routeTable.id,
 });
 
+// IAM
+
+const awsCallerId = pulumi.output(aws.getCallerIdentity())
+const awsRegion = aws.getRegionOutput()
+
+// Allow read-only for Sandbox clusters
+const eksReadOnlyPolicy = new aws.iam.Policy("eks-readonly-policy", {
+    policy: pulumi.jsonStringify({
+        "Version": "2012-10-17",
+        "Statement": [
+            {
+                "Sid": "DescribeCluster",
+                "Effect": "Allow",
+                "Action": [
+                    "eks:DescribeCluster"
+                ],
+                "Resource": pulumi.interpolate`arn:aws:eks:${awsRegion.name}:${awsCallerId.accountId}:cluster/cloud-sandbox-${environment}` // same name as eks stack
+            },
+            {
+                "Sid": "ListClusters",
+                "Effect": "Allow",
+                "Action": [
+                    "eks:ListClusters"
+                ],
+                "Resource": "*"
+            }
+        ]
+    })
+})
+
+const iamRole = new aws.iam.Role("sandbox-iam-role", {
+    name: `cloud-sandox-instance-${environment}`,
+    assumeRolePolicy: {
+        "Version": "2012-10-17",
+        "Statement": [
+            {
+                "Effect": "Allow",
+                "Principal": { "Service": "ec2.amazonaws.com"},
+                "Action": "sts:AssumeRole"
+            }
+        ]
+    },
+    tags: commonTags   
+})
+
+new aws.iam.RolePolicyAttachment("sandbox-eks-readonly-pa", {
+    policyArn: eksReadOnlyPolicy.arn,
+    role: iamRole
+})
+
+const instanceProfile = new aws.iam.InstanceProfile("sandbox-iam-instance-profile", {
+    role: iamRole.name
+});
+
 // Instance
 const hostedZone = aws.route53.getZone({ name: hostedZoneName })
 
@@ -120,9 +174,11 @@ for (let i=0; i<instances.length; i++) {
     const fqdn = `${instanceName}.${hostedZoneName}`
 
     const ec2Instance = k3sToken.result.apply(k3sTokenResult =>
+
         new aws.ec2.Instance(`instance-${instanceName}`, {
             ami: instanceAmi,
             instanceType: instanceType,
+            iamInstanceProfile: instanceProfile,
             tags: {
                 ...commonTags,
                 Name: `Sandbox ${fqdn}`

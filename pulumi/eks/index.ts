@@ -11,6 +11,7 @@ const awsRegion = awsConfig.require("region")
 const config = new pulumi.Config();
 const environment = config.require("environment")
 const hostedZoneName = config.require("hostedZoneName")
+const adminIamRoles = config.getObject<string[]>("adminIamRoles") || []
 
 const commonTags = { 
     Name: `cloud-sandbox-${environment}`,
@@ -66,6 +67,17 @@ const rta_b = new aws.ec2.RouteTableAssociation("rt-assoc-b", {
 });
 
 // Cluster
+const clusterRoleMappings = adminIamRoles.map(roleName => {
+    
+    const role = aws.iam.getRoleOutput({ name: roleName})
+
+    return {
+        groups: ["system:masters"],
+        roleArn: role.arn,
+        username: roleName
+    }
+})
+
 const cluster = new eks.Cluster("eks-cluster", {
     name: `cloud-sandbox-${environment}`,
     desiredCapacity: 2,
@@ -73,6 +85,7 @@ const cluster = new eks.Cluster("eks-cluster", {
     maxSize: 2,
     vpcId: vpc.id,
     subnetIds: [ subnet_a.id, subnet_b.id ],
+    roleMappings: clusterRoleMappings,
     tags: commonTags
 });
 
@@ -159,25 +172,4 @@ const sandboxServiceAccount = new ServiceAccount("sandbox-sa", {
     provider: cluster.provider
 })
 
-
 export const kubeconfig = cluster.kubeconfig;
-
-export const serviceAccountKubeconfig = pulumi.interpolate`apiVersion: v1
-kind: Config
-clusters:
-- name: default-cluster
-  cluster:
-    certificate-authority-data: ${cluster.eksCluster.certificateAuthority.data}
-    server: ${cluster.eksCluster.endpoint}
-contexts:
-- name: default-context
-  context:
-    cluster: default-cluster
-    namespace: default
-    user: default-user
-current-context: default-context
-users:
-- name: default-user
-  user:
-    token: ${sandboxServiceAccount.token}
-`
