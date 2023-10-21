@@ -267,6 +267,7 @@ export const ansibleInventory = yaml.dump({
     all: {
         hosts: hosts,
         vars: {
+            sandbox_environment: environment,
             ansible_ssh_common_args: "-o StrictHostKeyChecking=no",
             sandbox_user: sandboxUser,
             k3s_enabled: k3sEnabled,
