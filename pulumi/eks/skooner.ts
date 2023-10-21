@@ -1,5 +1,6 @@
 import * as pulumi from "@pulumi/pulumi";
 import * as k8s from "@pulumi/kubernetes";
+import * as serviceAccount from "./service-account"
 
 export interface SkoonerArgs {
     namespace: string,
@@ -7,6 +8,9 @@ export interface SkoonerArgs {
 }
 
 export class Skooner extends pulumi.ComponentResource {
+
+    readonly serviceAccount: serviceAccount.ServiceAccount
+
     constructor(name: string, args: SkoonerArgs, opts?: pulumi.ComponentResourceOptions) {
         super("cloud-sandbox-manager:k8s:Skooner", name, {}, opts);
 
@@ -87,56 +91,12 @@ export class Skooner extends pulumi.ComponentResource {
             }
         }, {
             ...commonOpts,
-            dependsOn: skoonerNamespace,
-            provider: opts?.provider
+            dependsOn: skoonerNamespace
         })
         
-        const skoonerServiceAccount = new k8s.core.v1.ServiceAccount("skooner-sa", {
-            metadata: { 
-                name: "skooner",
-                namespace: skoonerNamespace.metadata.name
-            }
-        }, {
-            ...commonOpts,
-            dependsOn: skoonerNamespace,    
-            provider: opts?.provider
-        })
-        
-        const skoonerClusterRoleBinding = new k8s.rbac.v1.ClusterRoleBinding("skooner-clusterrolebinding", {
-            "metadata": {
-                "name": "skooner-sa",
-            },
-            "roleRef": {
-                "apiGroup": "rbac.authorization.k8s.io",
-                "kind": "ClusterRole",
-                "name": "cluster-admin"
-            },
-            "subjects": [
-                {
-                    "kind": "ServiceAccount",
-                    "name": skoonerServiceAccount.metadata.name,
-                    "namespace": skoonerNamespace.metadata.name
-                }
-            ]
-        }, {
-            ...commonOpts,
-            dependsOn: skoonerServiceAccount,
-            provider: opts?.provider
-        })
-        
-        const skoonerServiceAccountSecret = new k8s.core.v1.Secret("skooner-sa-secret", {
-            metadata: {
-                name: "skooner-sa",
-                namespace: skoonerNamespace.metadata.name,
-                annotations: {
-                    "kubernetes.io/service-account.name": skoonerServiceAccount.metadata.name
-                }
-            },
-            type: "kubernetes.io/service-account-token"
-        }, {
-            ...commonOpts,
-            dependsOn: skoonerServiceAccount,
-        })
+        this.serviceAccount = new serviceAccount.ServiceAccount("skooner-sa", {
+            namespace: skoonerNamespace.metadata.name
+        }, commonOpts)
 
         const ingress = new k8s.networking.v1.Ingress("skooner-ingress", {
             metadata: {

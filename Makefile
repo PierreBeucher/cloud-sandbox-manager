@@ -29,9 +29,12 @@ test-k3s:
 	ansible-playbook test/test-k3s.yml -i ansible/inventories/$(shell pulumi -C pulumi/sandbox stack --show-name).yml
 
 .PHONY: k8s
-k8s: 
+k8s: eks kubeconfig
+
+.PHONY: eks
+eks:
 	pulumi -C pulumi/eks up -yfr
 
 .PHONY: kubeconfig
 kubeconfig: 
-	pulumi -C pulumi/eks stack output kubeconfig > kubeconfig
+	pulumi -C pulumi/eks stack output serviceAccountKubeconfig --show-secrets > kubeconfig

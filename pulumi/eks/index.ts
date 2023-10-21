@@ -3,6 +3,7 @@ import * as aws from "@pulumi/aws";
 import * as eks from "@pulumi/eks";
 import * as k8s from "@pulumi/kubernetes";
 import { Skooner } from "./skooner"
+import { ServiceAccount } from "./service-account";
 
 const awsConfig = new pulumi.Config("aws");
 const awsRegion = awsConfig.require("region")
@@ -151,5 +152,32 @@ const skooner = new Skooner("skooner",  {
     provider: cluster.provider
 })
 
-// Export cluster kubeconfig
+// SA to allow admin access from sandbox instances
+const sandboxServiceAccount = new ServiceAccount("sandbox-sa", {
+    namespace: "kube-system"
+}, {
+    provider: cluster.provider
+})
+
+
 export const kubeconfig = cluster.kubeconfig;
+
+export const serviceAccountKubeconfig = pulumi.interpolate`apiVersion: v1
+kind: Config
+clusters:
+- name: default-cluster
+  cluster:
+    certificate-authority-data: ${cluster.eksCluster.certificateAuthority.data}
+    server: ${cluster.eksCluster.endpoint}
+contexts:
+- name: default-context
+  context:
+    cluster: default-cluster
+    namespace: default
+    user: default-user
+current-context: default-context
+users:
+- name: default-user
+  user:
+    token: ${sandboxServiceAccount.token}
+`

@@ -5,7 +5,12 @@
   pre_tasks:
     - name: Wait for connectivity
       ansible.builtin.wait_for_connection:
-        timeout: 120
+        timeout: 10
+      register: wait_connect_result
+      until: wait_connect_result is success
+      retries: 18
+      delay: 10
+
     - name: gather facts
       tags: [ always ]
       gather_facts:
