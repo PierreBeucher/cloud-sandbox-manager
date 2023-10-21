@@ -2,7 +2,7 @@ import * as aws from "@pulumi/aws";
 import * as pulumi from "@pulumi/pulumi";
 import * as nixConfig from './configuration.nix'
 import * as yaml from "js-yaml"
-import * as utils from "./utils"
+import * as utils from "../utils"
 import * as random from "@pulumi/random";
 
 const config = new pulumi.Config();

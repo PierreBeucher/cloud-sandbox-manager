@@ -1,16 +1,13 @@
 import * as pulumi from "@pulumi/pulumi";
 import * as aws from "@pulumi/aws";
 import * as eks from "@pulumi/eks";
-import * as k8s from "@pulumi/kubernetes";
-import { Skooner } from "./skooner"
-import { ServiceAccount } from "./service-account";
+import { ServiceAccount } from "../components/service-account"
 
 const awsConfig = new pulumi.Config("aws");
 const awsRegion = awsConfig.require("region")
 
 const config = new pulumi.Config();
 const environment = config.require("environment")
-const hostedZoneName = config.require("hostedZoneName")
 const adminIamRoles = config.getObject<string[]>("adminIamRoles") || []
 
 const commonTags = { 
@@ -88,82 +85,6 @@ const cluster = new eks.Cluster("eks-cluster", {
     roleMappings: clusterRoleMappings,
     tags: commonTags
 });
-
-// Traefik
-const traefikNamespaceName  = "traefik"
-const traefikNamespace = new k8s.core.v1.Namespace("traefik-namespace", {
-    metadata: {
-        name: traefikNamespaceName
-    }
-}, {
-    provider: cluster.provider
-})
-
-
-const traefikRelease = new k8s.helm.v3.Release("traefik", {
-    chart: "traefik",
-    repositoryOpts: {
-        repo: "https://helm.traefik.io/traefik",
-    },
-    namespace: traefikNamespaceName,
-    values: {},
-}, {
-    provider: cluster.provider,
-    deleteBeforeReplace: true,
-    dependsOn: [ traefikNamespace ]
-})
-
-// Extract Traefik LB service hostname
-// Pulumi Service.get waits for service to be ready, 
-// in our case Load Balancer should exists with proper A record
-const traefikService = k8s.core.v1.Service.get(
-    "traefik-service",
-    pulumi.interpolate `${traefikNamespaceName}/${traefikRelease.status.name}`,
-    { 
-        provider: cluster.provider,
-        dependsOn: traefikRelease
-    }
-)
-
-traefikService.status.loadBalancer.ingress[0].hostname.apply(lbHostname => {
-    pulumi.log.info(`Traefik LB: ${lbHostname}`)
-
-    const loadBalancerHostedZone = aws.elb.getHostedZoneIdOutput({});
-
-    const hz = aws.route53.getZoneOutput({
-        name: hostedZoneName
-    })
-
-    const traefikLbRecord = new aws.route53.Record("traefik-lb-dns-record", {
-        zoneId: hz.id,
-        name: hostedZoneName,
-        type: "A",
-        aliases: [{
-            zoneId: loadBalancerHostedZone.id,
-            name: lbHostname,
-            evaluateTargetHealth: true
-        }],
-    })
-
-    const traefikLbRecordWildcard = new aws.route53.Record("traefik-lb-dns-record-wildcard", {
-        zoneId: hz.id,
-        name: `*.${hostedZoneName}`,
-        type: "A",
-        aliases: [{
-            zoneId: loadBalancerHostedZone.id,
-            name: lbHostname,
-            evaluateTargetHealth: true
-        }],
-    })
-})
-
-
-const skooner = new Skooner("skooner",  {
-    fqdn: `skooner.${hostedZoneName}`,
-    namespace: "skooner"
-}, {
-    provider: cluster.provider
-})
 
 // SA to allow admin access from sandbox instances
 const sandboxServiceAccount = new ServiceAccount("sandbox-sa", {

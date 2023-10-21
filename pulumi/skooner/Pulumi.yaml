@@ -1,0 +1,3 @@
+name: cloud-sandbox-skooner
+runtime: nodejs
+description: Skooner deployment for K8S

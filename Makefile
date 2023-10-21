@@ -20,15 +20,25 @@ playbook:
 .PHONY: down
 down:
 	pulumi -C pulumi/sandbox destroy -yrf
+	pulumi -C pulumi/traefik destroy -yrf
+	pulumi -C pulumi/skooner destroy -yrf
 	pulumi -C pulumi/eks destroy -yrf
 
 # K8S
 .PHONY: k8s
-k8s: eks kubeconfig
+k8s: eks traefik skooner kubeconfig
 
 .PHONY: eks
 eks:
 	pulumi -C pulumi/eks up -yfr
+
+.PHONY: traefik
+traefik:
+	pulumi -C pulumi/traefik up -yfr
+
+.PHONY: skooner
+skooner:
+	pulumi -C pulumi/skooner up -yfr
 
 .PHONY: kubeconfig
 kubeconfig: 

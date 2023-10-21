@@ -1,3 +1,6 @@
+import * as pulumi from "@pulumi/pulumi";
+import * as k8s from "@pulumi/kubernetes";
+
 /**
  * Get all hosts IP addresses from a CIDR block in form 192.168.0.0/24.
  * Inspired from https://stackoverflow.com/questions/22927298/create-ip-range-from-start-and-end-point-in-javascript-or-jquery
@@ -33,3 +36,20 @@ export function getCidrHostIps(cidrBlock: string): string[] {
 
     return result
 }
+
+/**
+ * Retrieve kubeconfig from sandbox eks stack and generate a Kubernetes provider
+ */
+export function getKubernetesProvider(){
+    const org = pulumi.getOrganization()
+    const environment = pulumi.getStack()
+
+    const eksStack = new pulumi.StackReference("eks-stackref", {
+        name: `${org}/cloud-sandbox-eks/${environment}`
+    })
+    const kubeconfig = pulumi.output(eksStack.getOutputValue("kubeconfig") as Promise<string>)
+    return new k8s.Provider("k8s-provider", {
+        kubeconfig: kubeconfig
+    })
+}
+
