@@ -5,13 +5,18 @@ import * as yaml from "js-yaml"
 import * as utils from "../utils"
 import * as random from "@pulumi/random";
 
+interface SandboxInstanceConfig {
+    name: string,   // instance name (used as hostname prefix)
+    eipalloc?: string    // optionally existing EIP allocation ID for instance, if not specified a new one is created
+}
+
 const config = new pulumi.Config();
 const environment = config.require("environment")
 const sshPublicKey = config.require("sshPublicKey")
 const hostedZoneName = config.require("hostedZoneName")
 const instanceAmi = config.require("instanceAmi")
 const instanceType = config.require("instanceType")
-const instances = config.requireObject<string[]>("instances")
+const instances = config.requireObject<SandboxInstanceConfig[]>("instances")
 const sandboxUser = config.require("user")
 const sandboxUserHashedPassword = config.require("hashedPassword")
 
@@ -167,7 +172,8 @@ const sg = new aws.ec2.SecurityGroup(`security-group`, {
 let instanceOutputs : { fqdn: string }[] = []
 
 for (let i=0; i<instances.length; i++) {
-    const instanceName = instances[i]
+    const instanceName = instances[i].name
+    const instanceExistingEip = instances[i].eipalloc
     const instanceIp = allVpcHostIps[i]
     const isK3sServer = instanceIp == k3sServerInternalIp
 
@@ -211,12 +217,15 @@ for (let i=0; i<instances.length; i++) {
         })
     )
     
-    const eip = new aws.ec2.Eip(`eip-${instanceName}`, {
-        tags: {
-            ...commonTags,
-            Name: `Sandbox ${fqdn}`
-        }
-    });
+    const eip = instanceExistingEip ? 
+        aws.ec2.Eip.get(`eip-${instanceName}`, instanceExistingEip)
+    :
+        new aws.ec2.Eip(`eip-${instanceName}`, {
+            tags: {
+                ...commonTags,
+                Name: `Sandbox ${fqdn}`
+            }
+        })
     
     const eipAssoc = new aws.ec2.EipAssociation(`eip-assoc-${instanceName}`, {
         instanceId: ec2Instance.id,

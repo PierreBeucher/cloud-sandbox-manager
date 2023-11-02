@@ -5,7 +5,8 @@ config:
   # Instances to deploy
   # Each instance will have a unique DNS record matching name and Hosted Zone
   cloud-sandbox:instances:
-  - pierre
+  - name: pierre
+    # eipalloc: eipalloc-xxx # Optional existing EIP to attach to instance
 
   # Hosted zone under which DNS A records will be created for each instance
   # i.e. "alice.training.crafteo.io" record for HZ "training.crafteo.io"
