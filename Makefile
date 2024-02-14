@@ -46,8 +46,8 @@ kubeconfig:
 
 .PHONY: users-config
 users-config:
-	kubectl -n skooner get secret skooner-sa -o jsonpath='{.data.token}' > users-config/skooner-token.txt
-	kubectl -n skooner create token skooner-sa | kubectl view-serviceaccount-kubeconfig > users-config/kubeconfig
+	kubectl -n skooner create token skooner-sa > users-config/skooner-token
+	cat users-config/skooner-token | kubectl view-serviceaccount-kubeconfig > users-config/kubeconfig
 	
 # Test
 .PHONY: test
