@@ -44,7 +44,9 @@ Start a Nix shell with all required dependencies:
 nix develop
 ```
 
-Deploy sandbox:
+#### EC2 instances
+
+Deploy sandbox EC2 instances:
 
 ```sh
 # Set your sandbox name
@@ -61,6 +63,23 @@ make up
 make pulumi     # Deploy Pulumi infra
 make inventory  # Generate Ansible inventory from Pulumi output
 make playbook   # Run additional Ansible config (very short)
+```
+
+#### Kubernetes cluster
+
+```sh
+# Set your sandbox name
+export SANDBOX_NAME=crafteo
+
+# Copy Pulumi template and adapt to your needs
+cp pulumi/eks/Pulumi.template.yaml pulumi/eks/Pulumi.$SANDBOX_NAME.yaml
+
+# Deploy EKS cluster
+make eks
+
+# Tooling: Traefik, Skooner
+make traefik
+make skooner
 ```
 
 ## Tests

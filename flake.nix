@@ -21,6 +21,12 @@
           nodePackages.npm
           ansible
           sshpass # for Ansible with SSH password
+          fzf
+
+          # K8S
+          kubectl
+          helm
+          krew
 
           # Utils
           libargon2 # Used to hash password for code-server
@@ -34,11 +40,15 @@
             shellHook = ''
               export PULUMI_SKIP_UPDATE_CHECK=1
 
-              # Kubeconfig as eks stack output with make kubeconfig
-              export KUBECONFIG=$PWD/kubeconfig
+              # Krew plugins
+              export PATH="$HOME/.krew/bin:$PATH"
+              krew install view-serviceaccount-kubeconfig
 
-              pulumi -C pulumi/sandbox stack select
+              # Choose stack and set environment name
+              export SANDBOX_NAME=$(pulumi -C pulumi/sandbox stack ls --json | jq '.[] | .name' -r | fzf)
             '';
+
+            
           };
         };
       }

@@ -1,5 +1,9 @@
 config:
   aws:region: eu-west-3
   cloud-sandbox-eks:environment: crafteo
-  cloud-sandbox-eks:adminIamRoles: 
-  - cloud-sandox-instance-crafteo
+
+  # Roles to give admin access to
+  # Use "cloud-sandox-instance-ENVIRONMENT" to give
+  # IAM role attached on EC2 instance sandbox direct access
+  cloud-sandbox-eks:adminIamRoles: []
+  # - cloud-sandox-instance-crafteo

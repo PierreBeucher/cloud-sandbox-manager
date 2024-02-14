@@ -42,9 +42,13 @@ skooner:
 
 .PHONY: kubeconfig
 kubeconfig: 
-	pulumi -C pulumi/eks stack output kubeconfig --show-secrets > kubeconfig
-	ansible-playbook ansible/eks-kubeconfig.yml -i ansible/inventories/$(shell pulumi -C pulumi/eks stack --show-name).yml
+	aws eks update-kubeconfig --name cloud-sandbox-${SANDBOX_NAME}
 
+.PHONY: users-config
+users-config:
+	kubectl -n skooner get secret skooner-sa -o jsonpath='{.data.token}' > users-config/skooner-token.txt
+	kubectl -n skooner create token skooner-sa | kubectl view-serviceaccount-kubeconfig > users-config/kubeconfig
+	
 # Test
 .PHONY: test
 test:

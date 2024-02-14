@@ -1,6 +1,7 @@
 .venv
 .ssh
 kubeconfig
+ansible/skooner-password.txt
 
 # Pulumi
 **/bin/
@@ -8,3 +9,6 @@ kubeconfig
 node_modules/
 **/Pulumi.*.yaml
 **/!Pulumi.template.yaml
+
+users-config/**
+!users-config/.gitkeep
