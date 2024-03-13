@@ -31,7 +31,8 @@ k8s: eks traefik skooner kubeconfig
 .PHONY: eks
 eks:
 	pulumi -C pulumi/eks up -yfr
-
+	ansible-playbook ansible/eks-kubeconfig.yml -i ansible/inventories/$(shell pulumi -C pulumi/sandbox stack --show-name).yml
+	
 .PHONY: traefik
 traefik:
 	pulumi -C pulumi/traefik up -yfr

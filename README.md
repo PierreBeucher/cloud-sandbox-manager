@@ -82,6 +82,12 @@ make traefik
 make skooner
 ```
 
+Deploy Example Voting App:
+
+```sh
+ kubectl apply -f example-voting-app/resources/k8s
+```
+
 ## Tests
 
 Run tests:

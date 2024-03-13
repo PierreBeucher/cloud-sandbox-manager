@@ -69,6 +69,7 @@ export function getConfigurationNix(args: NixConfigArgs): string {
 
       # K8S
       k3s
+      k9s
       kubectl
       kubernetes-helm
     ];
@@ -94,6 +95,11 @@ export function getConfigurationNix(args: NixConfigArgs): string {
       auth = "password";
       hashedPassword = "${args.codeServer?.hashedPassword}";
     }; 
+
+    # Required for code-server
+    nixpkgs.config.permittedInsecurePackages = [
+      "nodejs-16.20.0"
+    ];
 
     # Docker
     virtualisation.docker = {
@@ -133,7 +139,7 @@ export function getConfigurationNix(args: NixConfigArgs): string {
       size = 4*1024;
     } ];
   
-    system.stateVersion = "22.11";
+    system.stateVersion = "23.05";
   }`
 
 }
