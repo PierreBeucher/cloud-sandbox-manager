@@ -11,18 +11,18 @@ ansible: inventory playbook
 
 .PHONY: inventory
 inventory: 
-	pulumi -C pulumi/sandbox stack output ansibleInventory > ansible/inventories/$(shell pulumi -C pulumi/sandbox stack --show-name).yml
+	pulumi -C pulumi/sandbox -s ${SANDBOX_NAME} stack output ansibleInventory > ansible/inventories/$(shell pulumi -C pulumi/sandbox -s ${SANDBOX_NAME} stack --show-name).yml
 
 .PHONY: playbook
 playbook: 
-	ansible-playbook ansible/playbook.yml -i ansible/inventories/$(shell pulumi -C pulumi/sandbox stack --show-name).yml
+	ansible-playbook ansible/playbook.yml -i ansible/inventories/$(shell pulumi -C pulumi/sandbox -s ${SANDBOX_NAME} stack --show-name).yml
 
 .PHONY: down
 down:
-	pulumi -C pulumi/sandbox destroy -yrf
-	pulumi -C pulumi/traefik destroy -yrf
-	pulumi -C pulumi/skooner destroy -yrf
-	pulumi -C pulumi/eks destroy -yrf
+	pulumi -C pulumi/sandbox -s ${SANDBOX_NAME} destroy -yrf
+	pulumi -C pulumi/traefik -s ${SANDBOX_NAME} destroy -yrf
+	pulumi -C pulumi/skooner -s ${SANDBOX_NAME} destroy -yrf
+	pulumi -C pulumi/eks -s ${SANDBOX_NAME} destroy -yrf
 
 # K8S
 .PHONY: k8s
@@ -30,16 +30,16 @@ k8s: eks traefik skooner kubeconfig
 
 .PHONY: eks
 eks:
-	pulumi -C pulumi/eks up -yfr
-	ansible-playbook ansible/eks-kubeconfig.yml -i ansible/inventories/$(shell pulumi -C pulumi/sandbox stack --show-name).yml
+	pulumi -C pulumi/eks -s ${SANDBOX_NAME} up -yfr
+	ansible-playbook ansible/eks-kubeconfig.yml -i ansible/inventories/$(shell pulumi -C pulumi/sandbox -s ${SANDBOX_NAME} stack --show-name).yml
 	
 .PHONY: traefik
 traefik:
-	pulumi -C pulumi/traefik up -yfr
+	pulumi -C pulumi/traefik -s ${SANDBOX_NAME} up -yfr
 
 .PHONY: skooner
 skooner:
-	pulumi -C pulumi/skooner up -yfr
+	pulumi -C pulumi/skooner -s ${SANDBOX_NAME} up -yfr
 
 .PHONY: kubeconfig
 kubeconfig: 
@@ -53,13 +53,13 @@ users-config:
 # Test
 .PHONY: test
 test:
-	ansible-playbook test/test-docker.yml -i ansible/inventories/$(shell pulumi -C pulumi/sandbox stack --show-name).yml
+	ansible-playbook test/test-docker.yml -i ansible/inventories/$(shell pulumi -C pulumi/sandbox -s ${SANDBOX_NAME} stack --show-name).yml
 
 .PHONY: test-k3s
 test-k3s:
-	ansible-playbook test/test-k3s.yml -i ansible/inventories/$(shell pulumi -C pulumi/sandbox stack --show-name).yml
+	ansible-playbook test/test-k3s.yml -i ansible/inventories/$(shell pulumi -C pulumi/sandbox -s ${SANDBOX_NAME} stack --show-name).yml
 
 .PHONY: test-eks
 test-eks:
-	ansible-playbook test/test-eks.yml -i ansible/inventories/$(shell pulumi -C pulumi/eks stack --show-name).yml
+	ansible-playbook test/test-eks.yml -i ansible/inventories/$(shell pulumi -C pulumi/eks -s ${SANDBOX_NAME} stack --show-name).yml
 
