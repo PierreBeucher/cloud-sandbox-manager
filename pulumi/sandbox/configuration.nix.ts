@@ -74,7 +74,7 @@ export function getConfigurationNix(args: NixConfigArgs): string {
       kubernetes-helm
 
       # Node & TS
-      node_20
+      nodejs_20
       typescript
 
     ];
