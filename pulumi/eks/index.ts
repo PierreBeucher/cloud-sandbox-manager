@@ -9,6 +9,7 @@ const awsRegion = awsConfig.require("region")
 const config = new pulumi.Config();
 const environment = config.require("environment")
 const adminIamRoles = config.getObject<string[]>("adminIamRoles") || []
+const nodegroupSize = config.getNumber("nodegroupSize") || 2
 
 const commonTags = { 
     Name: `cloud-sandbox-${environment}`,
@@ -77,9 +78,9 @@ const clusterRoleMappings = adminIamRoles.map(roleName => {
 
 const cluster = new eks.Cluster("eks-cluster", {
     name: `cloud-sandbox-${environment}`,
-    desiredCapacity: 2,
+    desiredCapacity: nodegroupSize,
     minSize: 1,
-    maxSize: 2,
+    maxSize: nodegroupSize,
     vpcId: vpc.id,
     subnetIds: [ subnet_a.id, subnet_b.id ],
     roleMappings: clusterRoleMappings,
