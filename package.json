@@ -11,6 +11,7 @@
         "@pulumi/kubernetes": "^4.4.0",
         "@pulumi/pulumi": "^3.89.0",
         "@pulumi/random": "^4.14.0",
+        "@pulumi/tls": "^5.0.3",
         "@types/js-yaml": "^4.0.5",
         "js-yaml": "^4.1.0"
     }

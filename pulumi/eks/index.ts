@@ -1,6 +1,7 @@
 import * as pulumi from "@pulumi/pulumi";
 import * as aws from "@pulumi/aws";
 import * as eks from "@pulumi/eks";
+import * as tls from "@pulumi/tls";
 import { ServiceAccount } from "../components/service-account"
 
 const awsConfig = new pulumi.Config("aws");
@@ -95,9 +96,83 @@ for (const rule of extraNodeSecurityGroupRules) {
     });
 }
 
+// CSI add-on to manage volumes
+// Inspired from Pulumi example 
+// See https://www.pulumi.com/registry/packages/aws/api-docs/eks/addon/#example-iam-role-for-eks-addon-vpc-cni-with-aws-managed-policy
+// IAM Role: https://docs.aws.amazon.com/eks/latest/userguide/csi-iam-role.html (for IAM Role)
+// OIDC provider: https://docs.aws.amazon.com/eks/latest/userguide/enable-iam-roles-for-service-accounts.html (for OIDC Provider)
+// CSI Driver add-on: https://docs.aws.amazon.com/eks/latest/userguide/managing-ebs-csi.html
+const clusterCertificate = cluster.eksCluster.identities.apply(identities => tls.getCertificateOutput({
+    url: identities[0].oidcs?.[0]?.issuer,
+}));
+
+const oidcProvider = new aws.iam.OpenIdConnectProvider("eks-oidc-provider", {
+    clientIdLists: ["sts.amazonaws.com"],
+    thumbprintLists: [clusterCertificate.certificates[0].sha1Fingerprint], 
+    url: cluster.eksCluster.identities[0].oidcs[0].issuer
+});
+
+const oidcProviderUrl = oidcProvider.url.apply(url => url.replace("https://", ""))
+
+const assumeRolePolicy = aws.iam.getPolicyDocumentOutput({
+    statements: [{
+        actions: ["sts:AssumeRoleWithWebIdentity"],
+        effect: "Allow",
+        conditions: [
+            {
+                test: "StringEquals",
+                variable: pulumi.interpolate`${oidcProviderUrl}:aud`, // oidcProviderUrl.apply(url => `${url.result}:aud`),
+                values: ["sts.amazonaws.com"],
+            },
+            {
+                test: "StringEquals",
+                variable: pulumi.interpolate`${oidcProviderUrl}:sub`, // oidcProviderUrl.apply(url => `${url.result}:sub`),
+                values: ["system:serviceaccount:kube-system:ebs-csi-controller-sa"],
+            },
+        ],
+        principals: [{
+            identifiers: [oidcProvider.arn],
+            type: "Federated",
+        }],
+    }],
+});
+
+const csiDriverRole = new aws.iam.Role("csi-driver-role", {
+    assumeRolePolicy: assumeRolePolicy.json,
+    name: `cloud-sandbox-${environment}-csi-driver`,
+});
+
+const csiDriverRolePolicyAttachment = new aws.iam.RolePolicyAttachment("csi-driver-role-policy-attachment", {
+    policyArn: "arn:aws:iam::aws:policy/service-role/AmazonEBSCSIDriverPolicy",
+    role: csiDriverRole.name,
+});
+
+const csiDriverAddon = new aws.eks.Addon("csi-driver-addon", {
+    clusterName: cluster.eksCluster.name,
+    addonName: "aws-ebs-csi-driver",
+    serviceAccountRoleArn: csiDriverRole.arn
+});
+
 // SA to allow admin access from sandbox instances
 const sandboxServiceAccount = new ServiceAccount("sandbox-sa", {
     namespace: "kube-system"
+}, {
+    provider: cluster.provider
+})
+
+// Storage class
+import * as k8s from "@pulumi/kubernetes";
+
+// Create a StorageClass for AWS EBS
+const ebsStorageClass = new k8s.storage.v1.StorageClass("storage-class-ebs", {
+    metadata: {
+        name: "ebs-sc",
+        annotations: {
+            "storageclass.kubernetes.io/is-default-class": "true"
+        }
+    },
+    provisioner: "ebs.csi.aws.com",
+    volumeBindingMode: "WaitForFirstConsumer",
 }, {
     provider: cluster.provider
 })
