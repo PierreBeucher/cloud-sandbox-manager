@@ -29,6 +29,8 @@
     cloud_sandbox_clone_git_repos:
     - name: example-voting-app
       repo: 'https://github.com/PierreBeucher/example-voting-app.git'
+    - name: k8s-training
+      repo: 'https://github.com/PierreBeucher/k8s-training-exercises'
   
   tasks:
     - name: clone Git repos
