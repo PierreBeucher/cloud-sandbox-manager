@@ -8,8 +8,9 @@ const awsRegion = awsConfig.require("region")
 
 const config = new pulumi.Config();
 const environment = config.require("environment")
-const adminIamRoles = config.getObject<string[]>("adminIamRoles") || []
-const nodegroupSize = config.getNumber("nodegroupSize") || 2
+const adminIamRoles = config.getObject<string[]>("adminIamRoles") ?? []
+const nodegroupSize = config.getNumber("nodegroupSize") ?? 2
+const extraNodeSecurityGroupRules = config.getObject<Omit<aws.ec2.SecurityGroupRuleArgs, "securityGroupId">[]>("extraNodeSecurityGroupRules") ?? []
 
 const commonTags = { 
     Name: `cloud-sandbox-${environment}`,
@@ -84,8 +85,15 @@ const cluster = new eks.Cluster("eks-cluster", {
     vpcId: vpc.id,
     subnetIds: [ subnet_a.id, subnet_b.id ],
     roleMappings: clusterRoleMappings,
-    tags: commonTags
+    tags: commonTags,
 });
+
+for (const rule of extraNodeSecurityGroupRules) {
+    new aws.ec2.SecurityGroupRule(`security-group`, {
+        ...rule,
+        securityGroupId: cluster.nodeSecurityGroup.id,
+    });
+}
 
 // SA to allow admin access from sandbox instances
 const sandboxServiceAccount = new ServiceAccount("sandbox-sa", {

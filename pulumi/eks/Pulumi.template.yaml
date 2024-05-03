@@ -7,3 +7,12 @@ config:
   # IAM role attached on EC2 instance sandbox direct access
   cloud-sandbox-eks:adminIamRoles: []
   # - cloud-sandox-instance-crafteo
+
+  # Additional rules for EKS Nodes Security Groups
+  cloud-sandbox-eks:extraNodeSecurityGroupRules: []
+  # - type: "ingress"
+  #   protocol: "tcp"
+  #   fromPort: 3000
+  #   toPort: 36000
+  #   cidrBlocks: ["0.0.0.0/0"]
+  #   ipv6CidrBlocks: ["::/0"]
