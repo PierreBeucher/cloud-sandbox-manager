@@ -1,0 +1,3 @@
+name: cloud-sandbox-metrics-server
+runtime: nodejs
+description: Metrics Server Helm chart

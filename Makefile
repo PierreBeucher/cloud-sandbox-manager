@@ -41,6 +41,10 @@ traefik:
 cert-manager:
 	pulumi -C pulumi/cert-manager -s ${SANDBOX_NAME} up -yfr
 
+.PHONY: metrics-server
+metrics-server:
+	pulumi -C pulumi/metrics-server -s ${SANDBOX_NAME} up -yfr
+
 .PHONY: skooner
 skooner:
 	pulumi -C pulumi/skooner -s ${SANDBOX_NAME} up -yfr
