@@ -37,6 +37,10 @@ eks:
 traefik:
 	pulumi -C pulumi/traefik -s ${SANDBOX_NAME} up -yfr
 
+.PHONY: cert-manager
+cert-manager:
+	pulumi -C pulumi/cert-manager -s ${SANDBOX_NAME} up -yfr
+
 .PHONY: skooner
 skooner:
 	pulumi -C pulumi/skooner -s ${SANDBOX_NAME} up -yfr
