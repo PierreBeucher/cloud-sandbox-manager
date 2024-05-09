@@ -26,7 +26,7 @@ down:
 
 # K8S
 .PHONY: k8s
-k8s: eks traefik skooner kubeconfig
+k8s: eks traefik skooner cert-manager metrics-server kubeconfig
 
 .PHONY: eks
 eks:
@@ -44,6 +44,10 @@ cert-manager:
 .PHONY: metrics-server
 metrics-server:
 	pulumi -C pulumi/metrics-server -s ${SANDBOX_NAME} up -yfr
+
+.PHONY: cluster-autoscaler
+cluster-autoscaler:
+	pulumi -C pulumi/cluster-autoscaler -s ${SANDBOX_NAME} up -yfr
 
 .PHONY: skooner
 skooner:

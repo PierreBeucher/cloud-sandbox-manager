@@ -25,7 +25,7 @@
 
           # K8S
           kubectl
-          helm
+          kubernetes-helm
           krew
 
           # Utils

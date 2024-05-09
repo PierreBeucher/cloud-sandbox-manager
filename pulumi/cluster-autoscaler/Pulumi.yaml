@@ -1,0 +1,3 @@
+name: cloud-sandbox-cluster-autoscaler
+runtime: nodejs
+description: Cluster Autoscaler for EKS

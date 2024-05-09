@@ -53,3 +53,10 @@ export function getKubernetesProvider(){
     })
 }
 
+export function getEksStack(environment: string){
+    const org = pulumi.getOrganization()
+
+    return new pulumi.StackReference(`eks-stackref-${environment}`, {
+        name: `${org}/cloud-sandbox-eks/${environment}`
+    })
+}

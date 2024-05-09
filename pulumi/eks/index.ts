@@ -78,16 +78,24 @@ const clusterRoleMappings = adminIamRoles.map(roleName => {
     }
 })
 
+const clusterName = `cloud-sandbox-${environment}`
 const cluster = new eks.Cluster("eks-cluster", {
-    name: `cloud-sandbox-${environment}`,
-    desiredCapacity: nodegroupSize,
-    minSize: 1,
-    maxSize: nodegroupSize,
+    name: clusterName,
     vpcId: vpc.id,
     subnetIds: [ subnet_a.id, subnet_b.id ],
     roleMappings: clusterRoleMappings,
     tags: commonTags,
-});
+    nodeGroupOptions: {
+        minSize: 1,
+        maxSize: nodegroupSize,
+        autoScalingGroupTags: {
+            // Required for CLuster Autoscaler auto discovery
+            // Tags looked-up for by defauly by Cluster Autoscaler Helm charts
+            "k8s.io/cluster-autoscaler/enabled": "true",
+            [`k8s.io/cluster-autoscaler/${clusterName}`]: "true",
+        }
+    }
+})
 
 for (const rule of extraNodeSecurityGroupRules) {
     new aws.ec2.SecurityGroupRule(`security-group`, {
@@ -177,4 +185,8 @@ const ebsStorageClass = new k8s.storage.v1.StorageClass("storage-class-ebs", {
     provider: cluster.provider
 })
 
-export const kubeconfig = cluster.kubeconfig;
+export const kubeconfig = cluster.kubeconfig
+export const oidcProviderArn = oidcProvider.arn
+export { oidcProviderUrl, clusterName }
+// export const clusterName = cluster.eksCluster.name
+
