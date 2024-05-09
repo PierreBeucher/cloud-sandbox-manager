@@ -116,5 +116,12 @@ const clusterAutoscaler = new k8s.helm.v3.Release("cluster-autoscaler", {
                 name: clusterAutoscalerServiceAccount.metadata.name,
             },
         },
+        extraArgs: {
+            // Scale down aggressively
+            "scale-down-delay-after-add": "5s",
+            "scale-down-delay-after-delete": "5s",
+            "scale-down-unneeded-time": "5s",
+            "scan-interval": "10s",
+        },
     },
 }, k8sResourceOpts);
