@@ -2,6 +2,7 @@ import * as pulumi from "@pulumi/pulumi";
 import * as aws from "@pulumi/aws";
 import * as eks from "@pulumi/eks";
 import * as tls from "@pulumi/tls";
+import * as k8s from "@pulumi/kubernetes";
 import { ServiceAccount } from "../components/service-account"
 
 const awsConfig = new pulumi.Config("aws");
@@ -167,9 +168,6 @@ const sandboxServiceAccount = new ServiceAccount("sandbox-sa", {
 }, {
     provider: cluster.provider
 })
-
-// Storage class
-import * as k8s from "@pulumi/kubernetes";
 
 // Create a StorageClass for AWS EBS
 const ebsStorageClass = new k8s.storage.v1.StorageClass("storage-class-ebs", {

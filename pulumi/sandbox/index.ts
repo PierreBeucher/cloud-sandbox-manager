@@ -30,22 +30,6 @@ const commonTags = {
 
 const vpcCidr = "192.168.0.0/24"
 
-// All instances are created within VPC
-// We want instance private IP to remain the same over time using IPs in this array
-// Remove first 3 and last IPs as they're reserved, see https://docs.aws.amazon.com/vpc/latest/userguide/subnet-sizing.html
-const allVpcHostIps = utils.getCidrHostIps(vpcCidr).slice(3, -1)
-
-// k3s
-const k3sEnabled = config.getBoolean("k3sEnabled") || false
-const k3sServerInternalIp = allVpcHostIps[0] // k3s server is always first machine in list
-const k3sServerInternalAddr = `https://${k3sServerInternalIp}:6443`
-
-// Random k3s token created at stack creation, do not change during stack life
-const k3sToken = new random.RandomPassword("k3s-token", {
-    length: 30,
-    special: false
-})
-
 // VPC
 const vpc = new aws.ec2.Vpc("vpc", {
     cidrBlock: vpcCidr,
@@ -154,7 +138,6 @@ const sg = new aws.ec2.SecurityGroup(`security-group`, {
         { fromPort: 3000, toPort: 3000, protocol: "tcp", cidrBlocks: ["0.0.0.0/0"], ipv6CidrBlocks: ["::/0"] },
         { fromPort: 8080, toPort: 8190, protocol: "tcp", cidrBlocks: ["0.0.0.0/0"], ipv6CidrBlocks: ["::/0"] },
         { fromPort: 9090, toPort: 9099, protocol: "tcp", cidrBlocks: ["0.0.0.0/0"], ipv6CidrBlocks: ["::/0"] },
-        { fromPort: 30000, toPort: 32767, protocol: "tcp", cidrBlocks: ["0.0.0.0/0"], ipv6CidrBlocks: ["::/0"] }, // k3s NodePort services
     ],
     egress: [{
         fromPort: 0,
@@ -171,51 +154,39 @@ const sg = new aws.ec2.SecurityGroup(`security-group`, {
 
 let instanceOutputs : { fqdn: string }[] = []
 
-for (let i=0; i<instances.length; i++) {
-    const instanceName = instances[i].name
-    const instanceExistingEip = instances[i].eipalloc
-    const instanceIp = allVpcHostIps[i]
-    const isK3sServer = instanceIp == k3sServerInternalIp
+for(const instance of instances) {
+    
+    const instanceName = instance.name
+    const instanceExistingEip = instance.eipalloc
 
     const fqdn = `${instanceName}.${hostedZoneName}`
 
-    const ec2Instance = k3sToken.result.apply(k3sTokenResult =>
-
-        new aws.ec2.Instance(`instance-${instanceName}`, {
-            ami: instanceAmi,
-            instanceType: instanceType,
-            iamInstanceProfile: instanceProfile,
-            tags: {
-                ...commonTags,
-                Name: `Sandbox ${fqdn}`
+    const ec2Instance = new aws.ec2.Instance(`instance-${instanceName}`, {
+        ami: instanceAmi,
+        instanceType: instanceType,
+        iamInstanceProfile: instanceProfile,
+        tags: {
+            ...commonTags,
+            Name: `Sandbox ${fqdn}`
+        },
+        volumeTags: commonTags,
+        rootBlockDevice: {
+            volumeSize: 100
+        },
+        vpcSecurityGroupIds: [sg.id],
+        subnetId: subnet.id,
+        keyName: keyPair.keyName,
+        userData: nixConfig.getConfigurationNix({ 
+            hostname: instanceName, 
+            user: sandboxUser,
+            sshPublicKeys: [ sshPublicKey ],
+            hashedPassword: sandboxUserHashedPassword,
+            codeServer: {
+                enabled: codeServerEnabled,
+                hashedPassword: codeServerHashedPassword
             },
-            volumeTags: commonTags,
-            rootBlockDevice: {
-                volumeSize: 100
-            },
-            vpcSecurityGroupIds: [sg.id],
-            subnetId: subnet.id,
-            privateIp: instanceIp,
-            keyName: keyPair.keyName,
-            userData: nixConfig.getConfigurationNix({ 
-                hostname: instanceName, 
-                user: sandboxUser,
-                sshPublicKeys: [ sshPublicKey ],
-                hashedPassword: sandboxUserHashedPassword,
-                codeServer: {
-                    enabled: codeServerEnabled,
-                    hashedPassword: codeServerHashedPassword
-                },
-                k3s: {
-                    enabled: k3sEnabled,
-                    role: isK3sServer ? "server" : "agent",
-                    // only specify server addr for non-server instance, otherwise server fails to start
-                    serverAddr: isK3sServer ? "" : k3sServerInternalAddr, 
-                    token: k3sTokenResult
-                }
-            })
         })
-    )
+    })
     
     const eip = instanceExistingEip ? 
         aws.ec2.Eip.get(`eip-${instanceName}`, instanceExistingEip)
@@ -270,18 +241,12 @@ instanceOutputs.map(h => {
     hosts[h.fqdn] = null
 })
 
-const k3sServerHostname = instanceOutputs[0].fqdn
-
 export const ansibleInventory = yaml.dump({
     all: {
         hosts: hosts,
         vars: {
             sandbox_environment: environment,
             ansible_ssh_common_args: "-o StrictHostKeyChecking=no",
-            sandbox_user: sandboxUser,
-            k3s_enabled: k3sEnabled,
-            k3s_server_hostname: k3sServerHostname,
-            k3s_server_internal_address: k3sServerInternalAddr
-        }
+            sandbox_user: sandboxUser,        }
     }
 })

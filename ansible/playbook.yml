@@ -39,36 +39,3 @@
         repo: "{{ item.repo }}"
         dest: "{{ ansible_env.HOME }}/{{ item.name }}"
       loop: "{{ cloud_sandbox_clone_git_repos }}"
-
-    # Only when K3S enabled
-    - name: k3s tasks
-      when: k3s_enabled
-      block:
-      - name: create kube config dir
-        tags: [ k3s ]
-        file:
-          path: "{{ ansible_env.HOME }}/.kube"
-          state: directory
-
-      - name: fetch kubeconfig from k3s server
-        become: true
-        tags: [ k3s ]
-        when: inventory_hostname == k3s_server_hostname
-        ansible.builtin.fetch:
-          src: /etc/rancher/k3s/k3s.yaml
-          dest: "{{ playbook_dir }}/kubeconfig.yml"
-          flat: true
-
-      - name: copy kube config from k3s server
-        tags: [ k3s ]
-        become: true
-        copy:
-          src: "{{ playbook_dir }}/kubeconfig.yml"
-          dest: "{{ ansible_env.HOME }}/.kube/config"
-
-      - name: replace localhost by k3s server in k3s kubeconfig
-        tags: [ k3s ]
-        replace:
-          path: "{{ ansible_env.HOME }}/.kube/config"
-          regexp: '(\s+)server: https://127\.0\.0\.1:6443'
-          replace: "\\1server: {{ k3s_server_internal_address }}"

@@ -4,12 +4,6 @@ export interface NixConfigArgs{
   user: string,
   sshPublicKeys?: string[]
   hashedPassword: string, // hash with mkpasswd
-  k3s?: {
-    enabled: boolean,
-    role: string,
-    serverAddr: string,
-    token: string
-  }
   codeServer?: {
     enabled: boolean,
     hashedPassword : string,
@@ -68,7 +62,6 @@ export function getConfigurationNix(args: NixConfigArgs): string {
       dive
 
       # K8S
-      k3s
       k9s
       kubectl
       kubernetes-helm
@@ -110,14 +103,6 @@ export function getConfigurationNix(args: NixConfigArgs): string {
     virtualisation.docker = {
       enable = true;
       enableOnBoot = true;
-    };
-
-    # k3s
-    services.k3s = {
-      enable = ${args.k3s?.enabled || false};
-      role = "${args.k3s?.role || ''}";
-      token = "${args.k3s?.token || ''}";
-      serverAddr = "${args.k3s?.serverAddr || ''}";
     };
 
     # Allow passwordless sudo
