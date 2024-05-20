@@ -19,20 +19,34 @@ playbook:
 
 .PHONY: down
 down:
-	pulumi -C pulumi/sandbox -s ${SANDBOX_NAME} destroy -yrf
 	pulumi -C pulumi/traefik -s ${SANDBOX_NAME} destroy -yrf
 	pulumi -C pulumi/skooner -s ${SANDBOX_NAME} destroy -yrf
+	pulumi -C pulumi/cluster-autoscaler -s ${SANDBOX_NAME} destroy -yrf
+	pulumi -C pulumi/metrics-server -s ${SANDBOX_NAME} destroy -yrf
+	pulumi -C pulumi/cert-manager -s ${SANDBOX_NAME} destroy -yrf
+	pulumi -C pulumi/eks-config -s ${SANDBOX_NAME} destroy -yrf
 	pulumi -C pulumi/eks -s ${SANDBOX_NAME} destroy -yrf
+	pulumi -C pulumi/sandbox -s ${SANDBOX_NAME} destroy -yrf
 
 # K8S
 .PHONY: k8s
-k8s: eks traefik skooner cert-manager metrics-server kubeconfig
+k8s: eks cluster-autoscaler traefik skooner cert-manager metrics-server kubeconfig
 
 .PHONY: eks
-eks:
+eks: eks-cluster eks-config eks-ansible
+
+.PHONY: eks-cluster
+eks-cluster:
 	pulumi -C pulumi/eks -s ${SANDBOX_NAME} up -yfr
+
+.PHONY: eks-config
+eks-config:
+	pulumi -C pulumi/eks-config -s ${SANDBOX_NAME} up -yfr
+
+.PHONY: eks-ansible
+eks-ansible:
 	ansible-playbook ansible/eks-kubeconfig.yml -i ansible/inventories/$(shell pulumi -C pulumi/sandbox -s ${SANDBOX_NAME} stack --show-name).yml
-	
+
 .PHONY: traefik
 traefik:
 	pulumi -C pulumi/traefik -s ${SANDBOX_NAME} up -yfr

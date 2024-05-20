@@ -1,0 +1,3 @@
+name: cloud-sandbox-eks-config
+runtime: nodejs
+description: EKS Kubernetes configs
