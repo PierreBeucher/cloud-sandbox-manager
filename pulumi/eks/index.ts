@@ -152,8 +152,9 @@ cluster.eksCluster.vpcConfig.clusterSecurityGroupId.apply(id => pulumi.log.info(
 const nodegroupCommonArgs: eks.ManagedNodeGroupOptions = {
     cluster: cluster,
     nodeRole: nodegroupRole,
+    instanceTypes: [ "t3.large" ],
     scalingConfig: {
-        minSize: 1,
+        minSize: 0,
         maxSize: 5,
         desiredSize: 1
     },
