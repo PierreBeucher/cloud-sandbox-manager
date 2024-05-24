@@ -65,6 +65,7 @@ export function getConfigurationNix(args: NixConfigArgs): string {
       k9s
       kubectl
       kubernetes-helm
+      kind
 
       # Node & TS
       nodejs_20
@@ -104,6 +105,11 @@ export function getConfigurationNix(args: NixConfigArgs): string {
       enable = true;
       enableOnBoot = true;
     };
+
+    # Bypass an issue causing Docker Compose stack to break some network connectivity
+    # to AWS metadata service (and breaks IAM Role impersonation, kubeconfig using IAM role, etc.)
+    # See https://github.com/NixOS/nixpkgs/issues/109389
+    networking.useNetworkd = true;
 
     # Allow passwordless sudo
     security.sudo.extraRules= [
