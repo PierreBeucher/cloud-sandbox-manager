@@ -39,6 +39,7 @@
 
             shellHook = ''
               export PULUMI_SKIP_UPDATE_CHECK=1
+              export PULUMI_K8S_DELETE_UNREACHABLE=true
 
               # Krew plugins
               export PATH="$HOME/.krew/bin:$PATH"
