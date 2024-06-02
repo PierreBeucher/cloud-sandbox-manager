@@ -145,7 +145,21 @@ const nodegroupLaunchTemplate = new aws.ec2.LaunchTemplate("launchTemplate", {
         cluster.eksCluster.vpcConfig.clusterSecurityGroupId, // this SG should be on all node to talk with control plane
         nodeSecurityGroup.id
     ],
-});
+    tagSpecifications: [
+        {
+            resourceType: "instance",
+            tags: {
+                Name: `cloud-sandbox-${environment}-eks-node`,
+            },
+        },
+        {
+            resourceType: "volume",
+            tags: {
+                Name: `cloud-sandbox-${environment}-eks-node`,
+            },
+        },
+    ]
+})
 
 cluster.eksCluster.vpcConfig.clusterSecurityGroupId.apply(id => pulumi.log.info(`cluster.eksCluster.vpcConfig.clusterSecurityGroupId: ${id}`))
 
@@ -161,7 +175,7 @@ const nodegroupCommonArgs: eks.ManagedNodeGroupOptions = {
     tags: commonTags,
     launchTemplate: {
         id: nodegroupLaunchTemplate.id,
-        version: nodegroupLaunchTemplate.latestVersion.apply(v => v.toString())
+        version: nodegroupLaunchTemplate.latestVersion.apply(v => v.toString()),
     }
 }
 
