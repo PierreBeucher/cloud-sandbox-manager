@@ -29,11 +29,11 @@ down:
 	pulumi -C pulumi/sandbox -s ${SANDBOX_NAME} destroy -yrf
 
 # K8S
-.PHONY: k8s
-k8s: eks cluster-autoscaler traefik skooner cert-manager metrics-server kubeconfig
+.PHONY: k8s-all
+k8s-all: eks cluster-autoscaler traefik skooner cert-manager metrics-server kubeconfig
 
 .PHONY: eks
-eks: eks-cluster eks-config eks-ansible
+eks: eks-cluster eks-config inventory eks-ansible
 
 .PHONY: eks-cluster
 eks-cluster:
