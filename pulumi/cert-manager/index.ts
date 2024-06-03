@@ -48,7 +48,8 @@ const clusterCertIssuer = new kubernetes.apiextensions.CustomResource("cert-mana
         }
     }
 }, {
-    dependsOn: [certManagerRelease]
+    dependsOn: [certManagerRelease],
+    provider: k8sProvider
 })
 
 const clusterCertIssuerProd = new kubernetes.apiextensions.CustomResource("cert-manager-cluster-issuer-prod", {
@@ -71,5 +72,6 @@ const clusterCertIssuerProd = new kubernetes.apiextensions.CustomResource("cert-
         }
     }
 }, {
-    dependsOn: [certManagerRelease]
+    dependsOn: [certManagerRelease],
+    provider: k8sProvider
 })
