@@ -135,7 +135,7 @@ export function getConfigurationNix(args: NixConfigArgs): string {
       size = 4*1024;
     } ];
   
-    system.stateVersion = "23.05";
+    system.stateVersion = "24.05";
   }`
 
 }
