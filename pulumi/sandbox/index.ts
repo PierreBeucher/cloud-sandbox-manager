@@ -152,7 +152,7 @@ const sg = new aws.ec2.SecurityGroup(`security-group`, {
     }
 });
 
-let instanceOutputs : { fqdn: string }[] = []
+let instanceOutputs : { fqdn: pulumi.Output<string>, publicIp: pulumi.Output<string> }[] = []
 
 for(const instance of instances) {
     
@@ -221,32 +221,22 @@ for(const instance of instances) {
     });
 
     instanceOutputs.push({
-        fqdn: fqdn,
+        fqdn: pulumi.output(fqdn),
+        publicIp: eip.publicIp
     })   
 }
 
-export const access =  instanceOutputs.map(o => {
-    return {
-        fqdn: o.fqdn,
-        ssh: `ssh linux@${o.fqdn}`,
-        url: `https://${o.fqdn}:8080`
-    }
-})
-
-export const outputs = JSON.stringify(instanceOutputs)
+export const outputs = instanceOutputs
 
 // Set Ansible inventory as output to easily write it from stack outputs
-let hosts: {[key:string]: any} = {};
-instanceOutputs.map(h => {
-    hosts[h.fqdn] = null
-})
+const ansibleHosts = instanceOutputs.map(h => h.publicIp)
 
-export const ansibleInventory = yaml.dump({
+export const ansibleInventory = pulumi.all(ansibleHosts).apply(hosts => yaml.dump({
     all: {
-        hosts: hosts,
+        hosts: Object.fromEntries(hosts.map(h => [h, null])),
         vars: {
             sandbox_environment: environment,
             ansible_ssh_common_args: "-o StrictHostKeyChecking=no",
             sandbox_user: sandboxUser,        }
     }
-})
+}))
