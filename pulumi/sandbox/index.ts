@@ -2,8 +2,6 @@ import * as aws from "@pulumi/aws";
 import * as pulumi from "@pulumi/pulumi";
 import * as nixConfig from './configuration.nix'
 import * as yaml from "js-yaml"
-import * as utils from "../utils"
-import * as random from "@pulumi/random";
 
 interface SandboxInstanceConfig {
     name: string,   // instance name (used as hostname prefix)
@@ -172,6 +170,9 @@ for(const instance of instances) {
         volumeTags: commonTags,
         rootBlockDevice: {
             volumeSize: 100
+        },
+        creditSpecification: {
+            cpuCredits: "unlimited"
         },
         vpcSecurityGroupIds: [sg.id],
         subnetId: subnet.id,
