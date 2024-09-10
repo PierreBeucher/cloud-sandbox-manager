@@ -1,0 +1,5 @@
+- hosts: localhost
+  gather_facts: false  
+  tasks:
+    - name: start instances
+      command: aws ec2 start-instances --region '{{ aws_region }}' --instance-ids {{ instance_ids | join(' ') }}

@@ -17,6 +17,14 @@ inventory:
 playbook: 
 	ansible-playbook ansible/playbook.yml -i ansible/inventories/$(shell pulumi -C pulumi/sandbox -s ${SANDBOX_NAME} stack --show-name).yml
 
+.PHONY: stop
+stop: 
+	ansible-playbook ansible/playbook-stop.yml -i ansible/inventories/$(shell pulumi -C pulumi/sandbox -s ${SANDBOX_NAME} stack --show-name).yml
+
+.PHONY: start
+start: 
+	ansible-playbook ansible/playbook-start.yml -i ansible/inventories/$(shell pulumi -C pulumi/sandbox -s ${SANDBOX_NAME} stack --show-name).yml
+
 .PHONY: down
 down:
 	pulumi -C pulumi/traefik -s ${SANDBOX_NAME} destroy -yrf

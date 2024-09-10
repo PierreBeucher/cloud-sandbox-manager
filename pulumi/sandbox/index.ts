@@ -150,7 +150,11 @@ const sg = new aws.ec2.SecurityGroup(`security-group`, {
     }
 });
 
-let instanceOutputs : { fqdn: pulumi.Output<string>, publicIp: pulumi.Output<string> }[] = []
+let instanceOutputs : { 
+    fqdn: pulumi.Output<string>, 
+    publicIp: pulumi.Output<string>,
+    instanceId: pulumi.Output<string> 
+}[] = []
 
 for(const instance of instances) {
     
@@ -167,6 +171,7 @@ for(const instance of instances) {
             ...commonTags,
             Name: `Sandbox ${fqdn}`
         },
+        
         volumeTags: commonTags,
         rootBlockDevice: {
             volumeSize: 100
@@ -223,7 +228,8 @@ for(const instance of instances) {
 
     instanceOutputs.push({
         fqdn: pulumi.output(fqdn),
-        publicIp: eip.publicIp
+        publicIp: eip.publicIp,
+        instanceId: ec2Instance.id
     })   
 }
 
@@ -231,13 +237,17 @@ export const outputs = instanceOutputs
 
 // Set Ansible inventory as output to easily write it from stack outputs
 const ansibleHosts = instanceOutputs.map(h => h.publicIp)
+const instanceIds = outputs.map(o => o.instanceId)
 
-export const ansibleInventory = pulumi.all(ansibleHosts).apply(hosts => yaml.dump({
+export const ansibleInventory = pulumi.all([ansibleHosts, instanceIds, awsRegion.name]).apply(([hosts, instIds, awsRegionName]) => yaml.dump({
     all: {
         hosts: Object.fromEntries(hosts.map(h => [h, null])),
         vars: {
             sandbox_environment: environment,
             ansible_ssh_common_args: "-o StrictHostKeyChecking=no",
-            sandbox_user: sandboxUser,        }
+            sandbox_user: sandboxUser,
+            instance_ids: instIds,
+            aws_region: awsRegionName
+        }
     }
 }))

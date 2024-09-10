@@ -1,0 +1,5 @@
+- hosts: localhost
+  gather_facts: false  
+  tasks:
+    - name: stop instances
+      command: aws ec2 stop-instances --region '{{ aws_region }}' --instance-ids {{ instance_ids | join(' ') }}
