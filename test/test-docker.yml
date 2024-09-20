@@ -4,7 +4,6 @@
 - hosts: all
   remote_user: "{{ sandbox_user }}"
   tasks:
-
     # 
     # Docker setup
     # 
@@ -36,7 +35,7 @@
       tags: [ evp ]
       delegate_to: localhost
       ansible.builtin.uri:
-        url: http://{{ inventory_hostname }}:5000
+        url: http://{{ fqdn }}:5000
       register: vote_task
       retries: 10
       delay: 5
@@ -46,7 +45,7 @@
       tags: [ evp ]
       delegate_to: localhost
       ansible.builtin.uri:
-        url: http://{{ inventory_hostname }}:5001
+        url: http://{{ fqdn }}:5001
       register: result_task
       retries: 10
       delay: 5
@@ -57,8 +56,8 @@
       tags: [ traefik ]
       ansible.builtin.copy:
         content: |
-          VOTE_URL=vote.{{ inventory_hostname }}
-          RESULT_URL=result.{{ inventory_hostname }}
+          VOTE_URL=vote.{{ fqdn }}
+          RESULT_URL=result.{{ fqdn }}
         dest: "{{ ansible_env.HOME }}/example-voting-app/.env"
 
     # Use Let's Encrypt Staging root CA to validate HTTPS config
@@ -78,7 +77,7 @@
     - name: check Vote HTTPS
       tags: [ traefik ]
       ansible.builtin.uri:
-        url: https://vote.{{ inventory_hostname }}
+        url: https://vote.{{ fqdn }}
         ca_path: /tmp/letsencrypt-stg-root-x1.pem
       register: vote_uri
       retries: 12
@@ -88,7 +87,7 @@
     - name: check Result HTTPS
       tags: [ traefik ]
       ansible.builtin.uri:
-        url: https://result.{{ inventory_hostname }}
+        url: https://result.{{ fqdn }}
         ca_path: /tmp/letsencrypt-stg-root-x1.pem
       register: result_uri
       retries: 12
@@ -99,7 +98,7 @@
     - name: query VS Code URL
       tags: [ code ]
       ansible.builtin.uri:
-        url: http://{{ inventory_hostname }}:8080
+        url: http://{{ fqdn }}:8080
       register: vscode_uri
       retries: 6
       delay: 10
@@ -115,7 +114,7 @@
     - name: check Kibana URL
       tags: [ elk ]
       ansible.builtin.uri:
-        url: http://{{ inventory_hostname }}:8082
+        url: http://{{ fqdn }}:8082
       register: kibana_uri
       retries: 60 # may take quite some time to be ready, Kibana is a bit heavy
       delay: 10
@@ -124,7 +123,7 @@
     - name: check Elasticsearch URL
       tags: [ elk ]
       ansible.builtin.uri:
-        url: http://{{ inventory_hostname }}:8091/_cat/indices
+        url: http://{{ fqdn }}:8091/_cat/indices
       register: elasticsearch_uri
       retries: 60 # may take quite some time to be ready, Elasticsearch is a bit heavy
       delay: 10
@@ -139,7 +138,7 @@
     - name: check Elasticsearch indice exists
       tags: [ elk ]
       ansible.builtin.uri:
-        url: http://{{ inventory_hostname }}:8091/_cat/indices
+        url: http://{{ fqdn }}:8091/_cat/indices
         return_content: true
       register: elasticsearch_uri
       retries: 6
@@ -169,7 +168,7 @@
     - name: check Grafana URL
       tags: [ prom ]
       ansible.builtin.uri:
-        url: http://{{ inventory_hostname }}:3000
+        url: http://{{ fqdn }}:3000
       register: grafana_uri
       retries: 12
       delay: 10
@@ -178,7 +177,7 @@
     - name: check Prometheus URL
       tags: [ prom ]
       ansible.builtin.uri:
-        url: http://{{ inventory_hostname }}:9090/-/ready
+        url: http://{{ fqdn }}:9090/-/ready
       register: prom_uri
       retries: 12
       delay: 10

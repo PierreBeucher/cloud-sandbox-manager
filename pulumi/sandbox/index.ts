@@ -239,9 +239,14 @@ export const instances = instanceOutputs
 const ansibleHosts = instanceOutputs.map(h => h.publicIp)
 const instanceIds = instances.map(o => o.instanceId)
 
-export const ansibleInventory = pulumi.all([ansibleHosts, instanceIds, awsRegion.name]).apply(([hosts, instIds, awsRegionName]) => yaml.dump({
+export const ansibleInventory = pulumi.all([instances, instanceIds, awsRegion.name]).apply(([allInstances, instIds, awsRegionName]) => yaml.dump({
     all: {
-        hosts: Object.fromEntries(hosts.map(h => [h, null])),
+        // For each host, build an object such as hosts: { "12.34.56.78": { fqdn: xxx.crafteo.io } }
+        hosts: Object.fromEntries(allInstances.map(h => [h.publicIp, { 
+            fqdn: h.fqdn,
+            instanceId: h.instanceId,
+            publicIp: h.publicIp
+        }])),
         vars: {
             sandbox_environment: environment,
             ansible_ssh_common_args: "-o StrictHostKeyChecking=no",

@@ -1,6 +1,3 @@
-# Test Docker training setup for https://docker.training.crafteo.io/ and https://github.com/PierreBeucher/example-voting-app
-# Deploy Example Voting App and other training related applications on sandbox instance and check they're as expected
-# Ensuring trainee will eb able to perform workshops and exercises during training
 - hosts: all
   remote_user: "{{ sandbox_user }}"
   tasks:
