@@ -54,14 +54,12 @@ Create Pulumi config under `pulumi/sandbox/Pulumi.ENVIRONMENT.yaml` (from `pulum
 Deploy sandbox EC2 instances:
 
 ```sh
-# Deploy sandbox environment with Pulumi and Ansible
-# Prompts for sandbox environment to use
-make up
+# Deploy ec2 instances
+task ec2-instances
 
-# Or run a specific deployment step
-make pulumi     # Deploy Pulumi infra
-make inventory  # Generate Ansible inventory from Pulumi output
-make playbook   # Run additional Ansible config (very short)
+# Start/stop instances
+task stop-ec2-instances
+task start-ec2-instances
 ```
 
 #### Kubernetes cluster
@@ -70,17 +68,13 @@ Create Pulumi config under `pulumi/eks/Pulumi.ENVIRONMENT.yaml` (from `pulumi/ek
 
 ```sh
 # Deploy EKS cluster
-make eks
-
-# Tooling: Traefik, Skooner
-make traefik
-make skooner
+task k8s-all
 ```
 
 Deploy Example Voting App:
 
 ```sh
- kubectl apply -f example-voting-app/resources/k8s
+kubectl apply -f example-voting-app/resources/k8s
 ```
 
 ## Tests
@@ -88,14 +82,14 @@ Deploy Example Voting App:
 Run tests:
 
 ```sh
-# Basic test
-make test
+task test-docker
+task test-eks
 ```
 
 ## Undeploy
 
-Destroy Pulumi stack
+Destroy everything that may be deployed (EC2 instances, Kubernetes, etc.)
 
 ```sh
-make down
+task destroy-all
 ```

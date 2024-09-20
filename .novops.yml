@@ -4,8 +4,12 @@ environments:
     variables:
     - name: SANDBOX_ENVIRONMENT
       value: crafteo
+    - name: AWS_DEFAULT_REGION
+      value: eu-west-3
   
   ami-template:
     variables:
     - name: SANDBOX_ENVIRONMENT
       value: ami-template
+    - name: AWS_DEFAULT_REGION
+      value: eu-west-3

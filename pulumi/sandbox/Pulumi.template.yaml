@@ -1,4 +1,7 @@
 config:
+  # Optionally specify AWS region (use default region from config if unset)
+  # aws:region: eu-west-3
+
   # Environment name (must be unique)
   cloud-sandbox:environment: crafteo
 

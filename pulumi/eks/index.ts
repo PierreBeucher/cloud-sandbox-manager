@@ -2,8 +2,6 @@ import * as pulumi from "@pulumi/pulumi";
 import * as aws from "@pulumi/aws";
 import * as eks from "@pulumi/eks";
 import * as tls from "@pulumi/tls";
-import * as k8s from "@pulumi/kubernetes";
-import { ServiceAccount } from "../components/service-account"
 
 const awsConfig = new pulumi.Config("aws");
 const awsRegion = awsConfig.require("region")
@@ -11,7 +9,6 @@ const awsRegion = awsConfig.require("region")
 const config = new pulumi.Config();
 const environment = config.require("environment")
 const adminIamRoles = config.getObject<string[]>("adminIamRoles") ?? []
-const nodegroupSize = config.getNumber("nodegroupSize") ?? 2
 const extraNodeSecurityGroupRules = config.getObject<Omit<aws.ec2.SecurityGroupRuleArgs, "securityGroupId">[]>("extraNodeSecurityGroupRules") ?? []
 
 const commonTags = { 

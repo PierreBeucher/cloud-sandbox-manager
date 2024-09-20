@@ -1,0 +1,115 @@
+version: '3'
+
+tasks:
+
+  ami-template:
+    cmds:
+    - scripts/create-ami.sh
+
+  # Deploy Sandbox environments suitable for Docker training
+  docker:
+    cmds:
+      - task: ec2-instances
+      - task: ansible
+  
+  ec2-instances:
+    cmds:
+      - pulumi -C pulumi/sandbox -s {{ .SANDBOX_ENVIRONMENT }} up -yrf
+
+  ansible:
+    cmds:
+      - task: ansible-inventory
+      - task: ansible-playbook
+
+  ansible-inventory:
+    cmds:
+      - pulumi -C pulumi/sandbox -s {{ .SANDBOX_ENVIRONMENT }} stack output ansibleInventory > ansible/inventories/$(pulumi -C pulumi/sandbox -s {{ .SANDBOX_ENVIRONMENT }} stack --show-name).yml
+
+  ansible-playbook:
+    cmds:
+      - ansible-playbook ansible/playbook.yml -i ansible/inventories/$(pulumi -C pulumi/sandbox -s {{ .SANDBOX_ENVIRONMENT }} stack --show-name).yml
+
+  stop-ec2-instances:
+    cmds:
+      - ansible-playbook ansible/playbook-stop.yml -i ansible/inventories/$(pulumi -C pulumi/sandbox -s {{ .SANDBOX_ENVIRONMENT }} stack --show-name).yml
+
+  start-ec2-instances:
+    cmds:
+      - ansible-playbook ansible/playbook-start.yml -i ansible/inventories/$(pulumi -C pulumi/sandbox -s {{ .SANDBOX_ENVIRONMENT }} stack --show-name).yml
+
+  destroy-all:
+    cmds:
+      - pulumi -C pulumi/traefik -s {{ .SANDBOX_ENVIRONMENT }} destroy -yrf
+      - pulumi -C pulumi/skooner -s {{ .SANDBOX_ENVIRONMENT }} destroy -yrf
+      - pulumi -C pulumi/cluster-autoscaler -s {{ .SANDBOX_ENVIRONMENT }} destroy -yrf
+      - pulumi -C pulumi/metrics-server -s {{ .SANDBOX_ENVIRONMENT }} destroy -yrf
+      - pulumi -C pulumi/cert-manager -s {{ .SANDBOX_ENVIRONMENT }} destroy -yrf
+      - pulumi -C pulumi/eks-config -s {{ .SANDBOX_ENVIRONMENT }} destroy -yrf
+      - pulumi -C pulumi/eks -s {{ .SANDBOX_ENVIRONMENT }} destroy -yrf
+      - pulumi -C pulumi/sandbox -s {{ .SANDBOX_ENVIRONMENT }} destroy -yrf
+
+  k8s-all:
+    cmds:
+      - task: eks
+      - task: cluster-autoscaler
+      - task: traefik
+      - task: skooner
+      - task: cert-manager
+      - task: metrics-server
+      - task: kubeconfig
+
+  eks:
+    cmds:
+      - task: eks-cluster
+      - task: eks-config
+      - task: ansible-inventory
+      - task: ansible-eks
+
+  eks-cluster:
+    cmds:
+      - pulumi -C pulumi/eks -s {{ .SANDBOX_ENVIRONMENT }} up -yfr
+
+  eks-config:
+    cmds:
+      - pulumi -C pulumi/eks-config -s {{ .SANDBOX_ENVIRONMENT }} up -yfr
+
+  ansible-eks:
+    cmds:
+      - ansible-playbook ansible/eks-kubeconfig.yml -i ansible/inventories/$(pulumi -C pulumi/sandbox -s {{ .SANDBOX_ENVIRONMENT }} stack --show-name).yml
+
+  traefik:
+    cmds:
+      - pulumi -C pulumi/traefik -s {{ .SANDBOX_ENVIRONMENT }} up -yfr
+
+  cert-manager:
+    cmds:
+      - pulumi -C pulumi/cert-manager -s {{ .SANDBOX_ENVIRONMENT }} up -yfr
+
+  metrics-server:
+    cmds:
+      - pulumi -C pulumi/metrics-server -s {{ .SANDBOX_ENVIRONMENT }} up -yfr
+
+  cluster-autoscaler:
+    cmds:
+      - pulumi -C pulumi/cluster-autoscaler -s {{ .SANDBOX_ENVIRONMENT }} up -yfr
+
+  skooner:
+    cmds:
+      - pulumi -C pulumi/skooner -s {{ .SANDBOX_ENVIRONMENT }} up -yfr
+
+  kubeconfig:
+    cmds:
+      - aws eks update-kubeconfig --name cloud-sandbox-{{ .SANDBOX_ENVIRONMENT }}
+
+  users-config:
+    cmds:
+      - kubectl -n skooner create token skooner-sa > users-config/skooner-token
+      - cat users-config/skooner-token | kubectl view-serviceaccount-kubeconfig > users-config/kubeconfig
+
+  test-docker:
+    cmds:
+      - ansible-playbook test/test-docker.yml -i ansible/inventories/$(pulumi -C pulumi/sandbox -s {{ .SANDBOX_ENVIRONMENT }} stack --show-name).yml
+
+  test-eks:
+    cmds:
+      - ansible-playbook test/test-eks.yml -i ansible/inventories/$(pulumi -C pulumi/eks -s {{ .SANDBOX_ENVIRONMENT }} stack --show-name).yml
