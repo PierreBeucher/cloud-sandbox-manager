@@ -12,3 +12,4 @@ node_modules/
 
 users-config/**
 !users-config/.gitkeep
+tmp/

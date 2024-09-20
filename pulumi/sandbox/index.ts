@@ -14,7 +14,7 @@ const sshPublicKey = config.require("sshPublicKey")
 const hostedZoneName = config.require("hostedZoneName")
 const instanceAmi = config.require("instanceAmi")
 const instanceType = config.require("instanceType")
-const instances = config.requireObject<SandboxInstanceConfig[]>("instances")
+const instanceConfigs = config.requireObject<SandboxInstanceConfig[]>("instances")
 const sandboxUser = config.require("user")
 const sandboxUserHashedPassword = config.require("hashedPassword")
 
@@ -156,7 +156,7 @@ let instanceOutputs : {
     instanceId: pulumi.Output<string> 
 }[] = []
 
-for(const instance of instances) {
+for(const instance of instanceConfigs) {
     
     const instanceName = instance.name
     const instanceExistingEip = instance.eipalloc
@@ -233,11 +233,11 @@ for(const instance of instances) {
     })   
 }
 
-export const outputs = instanceOutputs
+export const instances = instanceOutputs
 
 // Set Ansible inventory as output to easily write it from stack outputs
 const ansibleHosts = instanceOutputs.map(h => h.publicIp)
-const instanceIds = outputs.map(o => o.instanceId)
+const instanceIds = instances.map(o => o.instanceId)
 
 export const ansibleInventory = pulumi.all([ansibleHosts, instanceIds, awsRegion.name]).apply(([hosts, instIds, awsRegionName]) => yaml.dump({
     all: {
@@ -251,3 +251,5 @@ export const ansibleInventory = pulumi.all([ansibleHosts, instanceIds, awsRegion
         }
     }
 }))
+
+export const awsRegionName = awsRegion.name

@@ -35,6 +35,10 @@ Infra is deployed with [Pulumi](https://www.pulumi.com/) and each instance is pr
 - AWS account with permission on Route53 and EC2
 - An existing Route53 Hosted Zone for sandbox domain name, such as `training.crafteo.io`
 
+### Configuration
+
+- Update `.novops.yml` with your desired environments
+
 ### Deploy
 
 Start a Nix shell with all required dependencies:
@@ -45,15 +49,11 @@ nix develop
 
 #### EC2 instances
 
+Create Pulumi config under `pulumi/sandbox/Pulumi.ENVIRONMENT.yaml` (from `pulumi/sandbox/Pulumi.template.yaml`)
+
 Deploy sandbox EC2 instances:
 
 ```sh
-# Set your sandbox name
-export SANDBOX_NAME=crafteo
-
-# Copy Pulumi template and adapt to your needs
-cp pulumi/sandox/Pulumi.template.yaml pulumi/sandox/Pulumi.$SANDBOX_NAME.yaml
-
 # Deploy sandbox environment with Pulumi and Ansible
 # Prompts for sandbox environment to use
 make up
@@ -66,13 +66,9 @@ make playbook   # Run additional Ansible config (very short)
 
 #### Kubernetes cluster
 
+Create Pulumi config under `pulumi/eks/Pulumi.ENVIRONMENT.yaml` (from `pulumi/eks/Pulumi.template.yaml`)
+
 ```sh
-# Set your sandbox name
-export SANDBOX_NAME=crafteo
-
-# Copy Pulumi template and adapt to your needs
-cp pulumi/eks/Pulumi.template.yaml pulumi/eks/Pulumi.$SANDBOX_NAME.yaml
-
 # Deploy EKS cluster
 make eks
 

@@ -1,0 +1,11 @@
+environments:
+  
+  crafteo:
+    variables:
+    - name: SANDBOX_ENVIRONMENT
+      value: crafteo
+  
+  ami-template:
+    variables:
+    - name: SANDBOX_ENVIRONMENT
+      value: ami-template

@@ -2,14 +2,16 @@
   description = "Cloud Sandbox Manager";
 
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs/nixos-23.11";
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-24.05";
     flake-utils.url = "github:numtide/flake-utils";
+    novops.url = "github:PierreBeucher/novops";
   };
 
-  outputs = { self, nixpkgs, flake-utils }: 
+  outputs = { self, nixpkgs, flake-utils, novops }: 
     flake-utils.lib.eachDefaultSystem (system:
       let  
         pkgs = nixpkgs.legacyPackages.${system}; 
+        novopsPkg = novops.packages.${system}.novops;
                 
         deployPackages = with pkgs; [
           # Deployment tools
@@ -31,6 +33,7 @@
           # Utils
           libargon2 # Used to hash password for code-server
           go # for Terratest
+          go-task # Taskfile
         ];
       in {
         devShells = {
@@ -46,7 +49,9 @@
               krew install view-serviceaccount-kubeconfig
 
               # Choose stack and set environment name
-              export SANDBOX_NAME=$(pulumi -C pulumi/sandbox stack ls --json | jq '.[] | .name' -r | fzf)
+              source <(novops load)
+
+              PS1="($SANDBOX_ENVIRONMENT) $PS1"
             '';
 
             
