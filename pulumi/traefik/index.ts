@@ -24,6 +24,7 @@ const traefikNamespace = new k8s.core.v1.Namespace("traefik-namespace", {
 })
 
 const traefikRelease = new k8s.helm.v3.Release("traefik", {
+    name: "traefik",
     chart: "traefik",
     repositoryOpts: {
         repo: "https://helm.traefik.io/traefik",
