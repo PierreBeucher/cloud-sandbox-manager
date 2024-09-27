@@ -13,3 +13,7 @@ environments:
       value: ami-template
     - name: AWS_DEFAULT_REGION
       value: eu-west-3
+
+config:
+  default:
+    environment: crafteo
