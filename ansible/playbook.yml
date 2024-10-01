@@ -39,3 +39,13 @@
         repo: "{{ item.repo }}"
         dest: "{{ ansible_env.HOME }}/{{ item.name }}"
       loop: "{{ cloud_sandbox_clone_git_repos }}"
+      notify: reboot system # Have system reboot on initial install
+
+  handlers:
+    - name: reboot system
+      become: true
+      ansible.builtin.reboot:
+        reboot_timeout: 600
+        pre_reboot_delay: 0
+        post_reboot_delay: 10
+        search_paths: ["/sbin", "/bin", "/usr/sbin", "/usr/bin", "/usr/local/sbin", "/run/current-system/sw/bin"]
