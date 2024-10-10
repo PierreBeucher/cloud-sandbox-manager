@@ -1,6 +1,7 @@
 
 export interface NixConfigArgs{
   hostname: string,
+  fqdn: string,
   user: string,
   sshPublicKeys?: string[]
   hashedPassword: string, // hash with mkpasswd
@@ -8,6 +9,16 @@ export interface NixConfigArgs{
     enabled: boolean,
     hashedPassword : string,
   }
+
+  /**
+   * Whether to enable HTTP (TLS) automated certificate generation. Default to true.
+   */
+  autoHttpsEnable?: boolean
+
+  /**
+   * Email used to register with ACME server to generate TLS certificate
+   */
+  acmeEmail: string 
 }
 
 export function getConfigurationNix(args: NixConfigArgs): string {
@@ -93,7 +104,25 @@ export function getConfigurationNix(args: NixConfigArgs): string {
       port = 8080;
       auth = "password";
       hashedPassword = "${args.codeServer?.hashedPassword}";
-    }; 
+    };
+
+    # Caddy reverse proxying to Code Server with TLS
+    services.caddy = {
+      enable = true;
+      virtualHosts."${args.fqdn}".extraConfig = ''
+        reverse_proxy http://localhost:8080
+
+        # Caddy enables by default auto_https
+        # Setting it to disabled only if specified
+        ${args.autoHttpsEnable === false ? "auto_https: off" : ""}
+
+        tls {
+          issuer zerossl {
+            email ${args.acmeEmail}
+          }
+        }
+      '';
+    };
 
     # Required for code-server
     nixpkgs.config.permittedInsecurePackages = [

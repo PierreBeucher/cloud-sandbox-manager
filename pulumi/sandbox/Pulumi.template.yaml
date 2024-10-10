@@ -33,3 +33,10 @@ config:
   # WARNING: Enabling k3s may break some Docker features as it changes IP routing for load balancing
   #          Enabling k3S will prevent Docker + Traefik to work
   cloud-sandbox:k3sEnabled: false
+
+  # Whether to enable automated HTTPS (TLS) certificate generation for Code Server
+  # Default to true
+  # cloud-sandbox:autoHttpsEnable: true
+
+  # Email used to register with ACME server to generate TLS certificate
+  cloud-sandbox:acmeEmail: pierre@crafteo.io

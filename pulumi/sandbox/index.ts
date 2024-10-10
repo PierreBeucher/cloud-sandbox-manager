@@ -17,9 +17,11 @@ const instanceType = config.require("instanceType")
 const instanceConfigs = config.requireObject<SandboxInstanceConfig[]>("instances")
 const sandboxUser = config.require("user")
 const sandboxUserHashedPassword = config.require("hashedPassword")
+const acmeEmail = config.require("acmeEmail")
+const autoHttpsEnable = config.getBoolean("autoHttpsEnable") ?? true
 
-const codeServerEnabled = config.getBoolean("codeServerEnabled") || false
-const codeServerHashedPassword = config.get("codeServerHashedPassword") || ""
+const codeServerEnabled = config.getBoolean("codeServerEnabled") ?? false
+const codeServerHashedPassword = config.get("codeServerHashedPassword") ?? ""
 
 const commonTags = { 
     Controller: `cloud-sandbox-${environment}`,
@@ -184,6 +186,7 @@ for(const instance of instanceConfigs) {
         keyName: keyPair.keyName,
         userData: nixConfig.getConfigurationNix({ 
             hostname: instanceName, 
+            fqdn: fqdn,
             user: sandboxUser,
             sshPublicKeys: [ sshPublicKey ],
             hashedPassword: sandboxUserHashedPassword,
@@ -191,6 +194,8 @@ for(const instance of instanceConfigs) {
                 enabled: codeServerEnabled,
                 hashedPassword: codeServerHashedPassword
             },
+            acmeEmail: acmeEmail,
+            autoHttpsEnable: autoHttpsEnable,
         })
     })
     
