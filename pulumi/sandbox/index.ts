@@ -18,7 +18,6 @@ const instanceConfigs = config.requireObject<SandboxInstanceConfig[]>("instances
 const sandboxUser = config.require("user")
 const sandboxUserHashedPassword = config.require("hashedPassword")
 const acmeEmail = config.require("acmeEmail")
-const autoHttpsEnable = config.getBoolean("autoHttpsEnable") ?? true
 
 const codeServerEnabled = config.getBoolean("codeServerEnabled") ?? false
 const codeServerHashedPassword = config.get("codeServerHashedPassword") ?? ""
@@ -133,6 +132,9 @@ const sg = new aws.ec2.SecurityGroup(`security-group`, {
         { fromPort: 80, toPort: 80, protocol: "tcp", cidrBlocks: ["0.0.0.0/0"], ipv6CidrBlocks: ["::/0"] },
         { fromPort: 443, toPort: 443, protocol: "tcp", cidrBlocks: ["0.0.0.0/0"], ipv6CidrBlocks: ["::/0"] },
 
+        // Additional testing ports
+        { fromPort: 4000, toPort: 5000, protocol: "tcp", cidrBlocks: ["0.0.0.0/0"], ipv6CidrBlocks: ["::/0"] },
+
         // Various apps for training
         { fromPort: 5000, toPort: 5100, protocol: "tcp", cidrBlocks: ["0.0.0.0/0"], ipv6CidrBlocks: ["::/0"] },
         { fromPort: 3000, toPort: 3000, protocol: "tcp", cidrBlocks: ["0.0.0.0/0"], ipv6CidrBlocks: ["::/0"] },
@@ -195,7 +197,6 @@ for(const instance of instanceConfigs) {
                 hashedPassword: codeServerHashedPassword
             },
             acmeEmail: acmeEmail,
-            autoHttpsEnable: autoHttpsEnable,
         })
     })
     

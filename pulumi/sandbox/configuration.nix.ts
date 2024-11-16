@@ -11,11 +11,6 @@ export interface NixConfigArgs{
   }
 
   /**
-   * Whether to enable HTTP (TLS) automated certificate generation. Default to true.
-   */
-  autoHttpsEnable?: boolean
-
-  /**
    * Email used to register with ACME server to generate TLS certificate
    */
   acmeEmail: string 
@@ -101,7 +96,7 @@ export function getConfigurationNix(args: NixConfigArgs): string {
       enable = ${args.codeServer?.enabled || false};
       user = "${user}";
       host = "0.0.0.0";
-      port = 8080;
+      port = 8099;
       auth = "password";
       hashedPassword = "${args.codeServer?.hashedPassword}";
     };
@@ -109,18 +104,25 @@ export function getConfigurationNix(args: NixConfigArgs): string {
     # Caddy reverse proxying to Code Server with TLS
     services.caddy = {
       enable = true;
+      
+      # Main domain for Code Server
       virtualHosts."${args.fqdn}".extraConfig = ''
-        reverse_proxy http://localhost:8080
-
-        # Caddy enables by default auto_https
-        # Setting it to disabled only if specified
-        ${args.autoHttpsEnable === false ? "auto_https: off" : ""}
+        # Redirect main hostname on code server
+        reverse_proxy http://localhost:8099
 
         tls {
           issuer zerossl {
             email ${args.acmeEmail}
           }
         }
+      '';
+
+      # Configure port 80 on *.DOMAIN (all sub-domains) to be redirected to 8080
+      # to allow ACME challenge outside of Caddy on all subdomains
+      # This allow a Traefik container to use port 8080 internally
+      # and still use HTTP challenge for subdomains certificate generation
+      virtualHosts."http://*\.${args.fqdn}".extraConfig = ''
+        reverse_proxy http://localhost:8080
       '';
     };
 
@@ -133,6 +135,7 @@ export function getConfigurationNix(args: NixConfigArgs): string {
     virtualisation.docker = {
       enable = true;
       enableOnBoot = true;
+      liveRestore = false; # true is not compatible with Swarm
     };
 
     # Bypass an issue causing Docker Compose stack to break some network connectivity
