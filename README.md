@@ -1,5 +1,15 @@
 # Cloud Sandbox
 
+- [Deploy Sandbox instances](#deploy-sandbox-instances)
+  - [Requirements](#requirements)
+  - [Configuration](#configuration)
+  - [Deploy](#deploy)
+    - [EC2 instances](#ec2-instances)
+    - [Kubernetes cluster](#kubernetes-cluster)
+    - [Docker Swarm](#docker-swarm)
+- [Tests](#tests)
+- [Undeploy](#undeploy)
+
 Cloud Sandbox deploys sandbox EC2 instances on AWS. I personally used them for training sessions (Docker, Ansible, etc.) but they can be used for pretty much anything. 
 
 Sandboxes provides various tooling and services by default:
@@ -76,6 +86,31 @@ Deploy Example Voting App:
 ```sh
 kubectl apply -f example-voting-app/resources/k8s
 ```
+
+#### Docker Swarm
+
+All deployed nodes can be configured as a single Docker Swarm cluster:
+
+Deploy all nodes and setup Docker swarm:
+
+```sh
+task ec2-instances
+task swarm
+```
+
+Leave Swarm:
+
+```sh
+task swarm-leave
+```
+
+docker swarm init
+
+docker swarm join-token manager
+
+docker swarm join --token SWMTKN-1-1dnosfsusiommgv5m6nudz07etj7mp0fayjc04xgn8wg5h96es-0xdrmvk2syo4s4kx5nvhe8u5o 192.168.0.136:237
+
+docker stack deploy app-pierre -c docker-compose.yml
 
 ## Tests
 

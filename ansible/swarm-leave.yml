@@ -1,0 +1,8 @@
+---
+- name: Leave Docker Swarm for all instances
+  hosts: all
+  remote_user: docker
+  tasks:
+    - name: Get Docker info as JSON
+      shell: docker swarm leave --force
+      ignore_errors: true

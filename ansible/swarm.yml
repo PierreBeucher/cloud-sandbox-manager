@@ -1,0 +1,93 @@
+---
+- name: Initialize Docker Swarm and distribute manager token
+  hosts: all
+  remote_user: docker
+  tasks:
+    - name: Get Docker info as JSON
+      shell: docker info -f json
+      register: docker_info
+      run_once: true
+      changed_when: false
+
+    - name: Parse Swarm.LocalNodeState from Docker info
+      run_once: true
+      set_fact:
+        swarm_status: "{{ docker_info.stdout | from_json | json_query('Swarm.LocalNodeState') }}"
+
+    - name: debug Swarm status
+      run_once: true
+      debug:
+        msg: "Swarm status: {{ swarm_status }}"
+
+    - name: Request EC2 metadata token
+      ansible.builtin.uri:
+        url: "http://169.254.169.254/latest/api/token"
+        method: PUT
+        headers:
+          X-aws-ec2-metadata-token-ttl-seconds: "21600"
+        return_content: true
+      register: ec2_metadata_token_response
+
+    # - debug:
+    #     var: ec2_metadata_token_response
+
+    - name: Save metadata token into a fact
+      set_fact:
+        ec2_metadata_token: "{{ ec2_metadata_token_response.content }}"
+
+    - name: Retrieve EC2 local IP v4
+      ansible.builtin.uri:
+        url: "http://169.254.169.254/latest/meta-data/local-ipv4"
+        method: GET
+        headers:
+          X-aws-ec2-metadata-token: "{{ ec2_metadata_token }}"
+        return_content: true
+      register: ec2_metadata
+
+    - name: Set nodes IP v4 fact
+      set_fact:
+        ec2_local_ipv4: "{{ ec2_metadata.content }}"
+    
+    - name: Set main node IP v4 fact
+      set_fact:
+        ec2_local_ipv4_main: "{{ ec2_metadata.content }}"
+      run_once: true
+    
+    - name: debug local ipv4
+      debug:
+        var: ec2_local_ipv4
+    
+    - name: debug main local ipv4
+      debug:
+        var: ec2_local_ipv4
+      run_once: true
+
+    - name: Initialize Docker Swarm on first available host
+      shell: docker swarm init --advertise-addr "{{ ec2_local_ipv4 }}"
+      when: "swarm_status == 'inactive'"
+      run_once: true
+
+    - name: Generate Docker Swarm manager join token
+      shell: docker swarm join-token manager -q
+      register: manager_token_command
+      run_once: true
+      changed_when: false
+
+    - name: Set manager token fact
+      run_once: true
+      set_fact:
+        manager_token: "{{ manager_token_command.stdout }}"
+
+    - name: debug manager token
+      run_once: true
+      debug:
+        msg: "Manager token: '{{ manager_token }}'"
+      
+    - name: Copy manager token to ~/swarm-token.txt on all hosts
+      copy:
+        content: "{{ manager_token }}"
+        dest: "{{ ansible_env.HOME }}/swarm-token.txt"
+
+    - name: Initialize all nodes
+      shell: docker swarm join "{{ ec2_local_ipv4_main }}:2377" --token "{{ manager_token }}" --advertise-addr "{{ ec2_local_ipv4 }}"
+      when: "swarm_status == 'inactive' and ansible_play_batch[0] !=  inventory_hostname"

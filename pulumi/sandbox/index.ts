@@ -126,6 +126,7 @@ const sg = new aws.ec2.SecurityGroup(`security-group`, {
     ingress: [
         // Allow all on internal network
         { fromPort: 0, toPort: 65535, protocol: "tcp", cidrBlocks: [vpcCidr]},
+        { fromPort: 0, toPort: 65535, protocol: "udp", cidrBlocks: [vpcCidr]},
 
         // SSH HTTP(S)
         { fromPort: 22, toPort: 22, protocol: "tcp", cidrBlocks: ["0.0.0.0/0"], ipv6CidrBlocks: ["::/0"]},

@@ -29,6 +29,16 @@ tasks:
     cmds:
       - ansible-playbook ansible/playbook.yml -i ansible/inventories/$(pulumi -C pulumi/sandbox -s {{ .SANDBOX_ENVIRONMENT }} stack --show-name).yml
 
+  ansible-swarm:
+    aliases: [ swarm ]
+    cmds:
+      - ansible-playbook ansible/swarm.yml -i ansible/inventories/$(pulumi -C pulumi/sandbox -s {{ .SANDBOX_ENVIRONMENT }} stack --show-name).yml
+
+  ansible-swarm-leave:
+    aliases: [ swarm-leave ]
+    cmds:
+      - ansible-playbook ansible/swarm-leave.yml -i ansible/inventories/$(pulumi -C pulumi/sandbox -s {{ .SANDBOX_ENVIRONMENT }} stack --show-name).yml
+
   stop-ec2-instances:
     cmds:
       - ansible-playbook ansible/playbook-stop.yml -i ansible/inventories/$(pulumi -C pulumi/sandbox -s {{ .SANDBOX_ENVIRONMENT }} stack --show-name).yml
