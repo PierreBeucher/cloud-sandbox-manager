@@ -96,6 +96,7 @@ const cluster = new eks.Cluster("eks-cluster", {
     tags: commonTags,
     skipDefaultNodeGroup: true,
     instanceRole: nodegroupRole,
+    version: "1.32",
     // nodeGroupOptions: {
     //     extraNodeSecurityGroups: [ nodeSecurityGroup ]
     //     // autoScalingGroupTags: {

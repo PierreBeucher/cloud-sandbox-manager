@@ -17,6 +17,7 @@ const metricsServerRelease = new k8s.helm.v3.Release("metrics-server", {
     },
     namespace: metricsServerNamespaceName,
     values: {},
+    version: "3.12.2"
 }, {
     provider: k8sProvider,
 })

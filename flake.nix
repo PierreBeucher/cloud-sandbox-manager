@@ -2,7 +2,7 @@
   description = "Cloud Sandbox Manager";
 
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs/nixos-24.05";
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-24.11";
     flake-utils.url = "github:numtide/flake-utils";
     novops.url = "github:PierreBeucher/novops";
   };
@@ -17,8 +17,7 @@
           # Deployment tools
           awscli2
           gnumake
-          pulumi
-          pulumiPackages.pulumi-language-nodejs
+          pulumi-bin
           nodejs-slim
           nodePackages.npm
           ansible
