@@ -17,7 +17,11 @@ const instanceType = config.require("instanceType")
 const instanceConfigs = config.requireObject<SandboxInstanceConfig[]>("instances")
 const sandboxUser = config.require("user")
 const sandboxUserHashedPassword = config.require("hashedPassword")
+
 const acmeEmail = config.require("acmeEmail")
+const acmeServer = config.get("acmeServer")
+const acmeEabKeyId = config.get("acmeEabKeyId")
+const acmeEabMacKey = config.get("acmeEabMacKey")
 
 const codeServerEnabled = config.getBoolean("codeServerEnabled") ?? false
 const codeServerHashedPassword = config.get("codeServerHashedPassword") ?? ""
@@ -197,7 +201,14 @@ for(const instance of instanceConfigs) {
                 enabled: codeServerEnabled,
                 hashedPassword: codeServerHashedPassword
             },
-            acmeEmail: acmeEmail,
+            acme: {
+                email: acmeEmail,
+                server: acmeServer,
+                eab: acmeEabKeyId && acmeEabMacKey ? {
+                    keyId: acmeEabKeyId,
+                    macKey: acmeEabMacKey,
+                } : undefined
+            }
         })
     })
     

@@ -11,9 +11,17 @@ export interface NixConfigArgs{
   }
 
   /**
-   * Email used to register with ACME server to generate TLS certificate
+   * ACME config: registration email, server and EAB (External Account Binding) key id and mac key
+   * to generate TLS certificate
    */
-  acmeEmail: string 
+  acme: {
+    email: string,
+    server?: string,
+    eab?: {
+      keyId: string,
+      macKey: string,
+    }
+  }
 }
 
 export function getConfigurationNix(args: NixConfigArgs): string {
@@ -111,8 +119,10 @@ export function getConfigurationNix(args: NixConfigArgs): string {
         reverse_proxy http://localhost:8099
 
         tls {
-          issuer zerossl {
-            email ${args.acmeEmail}
+          issuer acme {
+            email ${args.acme.email}
+            dir ${args.acme.server || "https://acme-staging-v02.api.letsencrypt.org/directory"}
+            ${args.acme.eab ? `eab ${args.acme.eab.keyId} ${args.acme.eab.macKey}` : ""}
           }
         }
       '';

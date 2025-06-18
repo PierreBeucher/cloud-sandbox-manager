@@ -40,3 +40,11 @@ config:
 
   # Email used to register with ACME server to generate TLS certificate
   cloud-sandbox:acmeEmail: pierre@crafteo.io
+  
+  # ACME server and EAB (External Account Binding) config
+  # Default to Let's Encrypt staging server
+  # cloud-sandbox:acmeServer: https://acme.zerossl.com/v2/DV90
+
+  # Both key id and mac key are required, otherwise config gets ignored
+  # cloud-sandbox:acmeEabKeyId: 3XqmCmkBgh-KlfAUMVmgoQ 
+  # cloud-sandbox:acmeEabMacKey: Arw9af5TirPh-C5ncwREmzLbFyScoA-qyEmJQATEIxXwPqivI7xbxVd_P3wbDW-5qRHs8u-HddIa7FGHn1s3rA
