@@ -76,6 +76,10 @@ const ebsStorageClass = new k8s.storage.v1.StorageClass("storage-class-ebs", {
     },
     provisioner: "ebs.csi.aws.com",
     volumeBindingMode: "WaitForFirstConsumer",
+    parameters: {
+        type: "gp3",
+        encrypted: "true"
+    }
 }, {
     provider: k8sProvider
 })
