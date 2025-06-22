@@ -26,6 +26,8 @@ const acmeEabMacKey = config.get("acmeEabMacKey")
 const codeServerEnabled = config.getBoolean("codeServerEnabled") ?? false
 const codeServerHashedPassword = config.get("codeServerHashedPassword") ?? ""
 
+const caddyLogLevel = config.get("caddyLogLevel")
+
 const commonTags = { 
     Controller: `cloud-sandbox-${environment}`,
 }
@@ -208,6 +210,9 @@ for(const instance of instanceConfigs) {
                     keyId: acmeEabKeyId,
                     macKey: acmeEabMacKey,
                 } : undefined
+            },
+            caddy: {
+                logLevel: caddyLogLevel
             }
         })
     })

@@ -22,6 +22,18 @@ export interface NixConfigArgs{
       macKey: string,
     }
   }
+
+  /**
+   * Caddy config
+   */
+  caddy?: {
+    
+    /**
+     * Log level, default to INFO
+     * See https://caddyserver.com/docs/caddyfile/directives/log#level
+     */
+    logLevel?: string,
+  }
 }
 
 export function getConfigurationNix(args: NixConfigArgs): string {
@@ -112,6 +124,10 @@ export function getConfigurationNix(args: NixConfigArgs): string {
     # Caddy reverse proxying to Code Server with TLS
     services.caddy = {
       enable = true;
+
+      logFormat = ''
+        level ${args.caddy?.logLevel || "INFO"}
+      '';
       
       # Main domain for Code Server
       virtualHosts."${args.fqdn}".extraConfig = ''
