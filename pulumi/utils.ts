@@ -41,22 +41,20 @@ export function getCidrHostIps(cidrBlock: string): string[] {
  * Retrieve kubeconfig from sandbox eks stack and generate a Kubernetes provider
  */
 export function getKubernetesProvider(){
-    const org = pulumi.getOrganization()
-    const environment = pulumi.getStack()
-
-    const eksStack = new pulumi.StackReference("eks-stackref", {
-        name: `${org}/cloud-sandbox-eks/${environment}`
-    })
+    const eksStack = getPulumiStackRef("cloud-sandbox-eks", pulumi.getStack())
     const kubeconfig = pulumi.output(eksStack.getOutputValue("kubeconfig") as Promise<string>)
     return new k8s.Provider("k8s-provider", {
         kubeconfig: kubeconfig
     })
 }
 
-export function getEksStack(environment: string){
+/**
+ * Get the Sandbox Pulumi stack with given name and environment.
+ */
+export function getPulumiStackRef(name: string, environment: string): pulumi.StackReference {
     const org = pulumi.getOrganization()
 
-    return new pulumi.StackReference(`eks-stackref-${environment}`, {
-        name: `${org}/cloud-sandbox-eks/${environment}`
+    return new pulumi.StackReference(`${name}-stackref`, {
+        name: `${org}/${name}/${environment}`
     })
 }

@@ -2,12 +2,12 @@ import * as pulumi from "@pulumi/pulumi";
 import * as aws from "@pulumi/aws";
 import * as k8s from "@pulumi/kubernetes";
 import { ServiceAccount } from "../components/service-account"
-import { getKubernetesProvider, getEksStack } from "../utils"
+import { getKubernetesProvider, getPulumiStackRef } from "../utils"
 
 const config = new pulumi.Config();
 const environment = config.require("environment")
 
-const eksStack = getEksStack(environment)
+const eksStack = getPulumiStackRef("cloud-sandbox-eks", environment)
 const oidcProviderUrl = eksStack.getOutput("oidcProviderUrl")
 const oidcProviderArn = eksStack.getOutput("oidcProviderArn")
 const clusterName = eksStack.getOutput("clusterName")

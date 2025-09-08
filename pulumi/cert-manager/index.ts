@@ -19,7 +19,7 @@ const certManagerRelease = new kubernetes.helm.v3.Release(`helm-chart-cert-manag
     values: {
         installCRDs: true
     },
-    version: "1.17.2",
+    version: "1.18.2",
     namespace: certmanagerNamespace.metadata.name,
     repositoryOpts: {
         repo: "https://charts.jetstack.io",
@@ -28,7 +28,7 @@ const certManagerRelease = new kubernetes.helm.v3.Release(`helm-chart-cert-manag
     provider: k8sProvider
 })
 
-const clusterCertIssuer = new kubernetes.apiextensions.CustomResource("cert-manager-cluster-issuer", {
+const stagingClusterCertIssuer = new kubernetes.apiextensions.CustomResource("cert-manager-cluster-issuer", {
     apiVersion: "cert-manager.io/v1",
     kind: "ClusterIssuer",
     metadata: {
@@ -75,3 +75,6 @@ const clusterCertIssuerProd = new kubernetes.apiextensions.CustomResource("cert-
     dependsOn: [certManagerRelease],
     provider: k8sProvider
 })
+
+export const stagingClusterIssuerName = stagingClusterCertIssuer.metadata.name
+export const prodClusterIssuerName = clusterCertIssuerProd.metadata.name

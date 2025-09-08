@@ -1,12 +1,12 @@
 import * as pulumi from "@pulumi/pulumi";
 import * as aws from "@pulumi/aws";
 import * as k8s from "@pulumi/kubernetes";
-import { getKubernetesProvider, getEksStack } from "../utils"
+import { getKubernetesProvider, getPulumiStackRef } from "../utils"
 
 const config = new pulumi.Config();
 const environment = config.require("environment")
 
-const eksStack = getEksStack(environment)
+const eksStack = getPulumiStackRef("cloud-sandbox-eks", environment)
 const oidcProviderUrl = eksStack.getOutput("oidcProviderUrl")
 const oidcProviderArn = eksStack.getOutput("oidcProviderArn")
 const clusterName = eksStack.getOutput("clusterName")
@@ -100,7 +100,7 @@ const clusterAutoscalerServiceAccount = new k8s.core.v1.ServiceAccount("cluster-
 const clusterAutoscaler = new k8s.helm.v3.Release("cluster-autoscaler", {
     name: "cluster-autoscaler",
     chart: "cluster-autoscaler",
-    version: "9.46.6",
+    version: "9.50.1",
     repositoryOpts: {
         repo: "https://kubernetes.github.io/autoscaler",
     },

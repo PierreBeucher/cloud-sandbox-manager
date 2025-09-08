@@ -8,7 +8,7 @@ ansible/skooner-password.txt
 **/node_modules/
 node_modules/
 **/Pulumi.*.yaml
-**/!Pulumi.template.yaml
+!**/Pulumi.template.yaml
 
 users-config/**
 !users-config/.gitkeep
