@@ -41,7 +41,11 @@ export function getCidrHostIps(cidrBlock: string): string[] {
  * Retrieve kubeconfig from sandbox eks stack and generate a Kubernetes provider
  */
 export function getKubernetesProvider(){
-    const eksStack = getPulumiStackRef("cloud-sandbox-eks", pulumi.getStack())
+    const eksStack = getPulumiStackRef({ 
+        name: "cloud-sandbox-eks", 
+        environment: pulumi.getStack(), 
+        pulumiResourceName: "eks-kubernetes-provider-stackref" 
+    })
     const kubeconfig = pulumi.output(eksStack.getOutputValue("kubeconfig") as Promise<string>)
     return new k8s.Provider("k8s-provider", {
         kubeconfig: kubeconfig
@@ -50,11 +54,19 @@ export function getKubernetesProvider(){
 
 /**
  * Get the Sandbox Pulumi stack with given name and environment.
+ * 
+ * @param args.name - The name of the Pulumi stack.
+ * @param args.environment - The environment of the Pulumi stack.
+ * @param args.pulumiResourceName - The name of the unique Pulumi StackReference resource to create.
+ *  By default name will be generated from the name and environment. In some cases, you may want to use a unique name for the StackReference resource.
+ * @returns The Pulumi stack reference.
  */
-export function getPulumiStackRef(name: string, environment: string): pulumi.StackReference {
+export function getPulumiStackRef(args: { name: string, environment: string, pulumiResourceName?: string }): pulumi.StackReference {
     const org = pulumi.getOrganization()
 
-    return new pulumi.StackReference(`${name}-stackref`, {
-        name: `${org}/${name}/${environment}`
+    const pulumiResourceName = args.pulumiResourceName || `${args.name}-stackref`
+
+    return new pulumi.StackReference(pulumiResourceName, {
+        name: `${org}/${args.name}/${args.environment}`
     })
 }

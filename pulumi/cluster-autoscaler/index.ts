@@ -6,7 +6,7 @@ import { getKubernetesProvider, getPulumiStackRef } from "../utils"
 const config = new pulumi.Config();
 const environment = config.require("environment")
 
-const eksStack = getPulumiStackRef("cloud-sandbox-eks", environment)
+const eksStack = getPulumiStackRef({ name: "cloud-sandbox-eks", environment: environment })
 const oidcProviderUrl = eksStack.getOutput("oidcProviderUrl")
 const oidcProviderArn = eksStack.getOutput("oidcProviderArn")
 const clusterName = eksStack.getOutput("clusterName")
