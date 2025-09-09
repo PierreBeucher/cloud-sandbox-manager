@@ -30,7 +30,13 @@ const traefikRelease = new k8s.helm.v3.Release("traefik", {
         repo: "https://helm.traefik.io/traefik",
     },
     namespace: traefikNamespaceName,
-    values: {},
+    values: {
+        ingressRoute: {
+            dashboard: {
+                enabled: true
+            }
+        }
+    },
     version: "35.2.0"
 }, {
     provider: k8sProvider,
