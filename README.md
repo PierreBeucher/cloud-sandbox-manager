@@ -9,6 +9,7 @@
     - [Docker Swarm](#docker-swarm)
 - [Tests](#tests)
 - [Undeploy](#undeploy)
+- [Maintenance](#maintenance)
 
 Cloud Sandbox deploys sandbox EC2 instances on AWS. I personally used them for training sessions (Docker, Ansible, etc.) but they can be used for pretty much anything. 
 
@@ -128,3 +129,18 @@ Destroy everything that may be deployed (EC2 instances, Kubernetes, etc.)
 ```sh
 task destroy-all
 ```
+
+## Maintenance
+
+Bump versions:
+
+- [ ] Cert Manager
+- [ ] Cluster Autoscaler
+- [ ] EKS
+- [ ] Metrics Server
+- [ ] Traefik
+- [ ] Nix Flake
+  - `nix flake update`
+- [ ] NPM dependencies
+  - `npm update`
+- [ ] Update base image
