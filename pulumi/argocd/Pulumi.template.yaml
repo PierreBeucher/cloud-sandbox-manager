@@ -1,0 +1,6 @@
+config:
+  cloud-sandbox-argocd:environment: crafteo
+  cloud-sandbox-argocd:fqdn: argocd.k8s.crafteo.io
+  # ArgoCD admin password hash. Generate with:
+  # docker run --rm -it httpd:alpine htpasswd -nbBC 10 "" 'PASSWORD' | tr -d ':\n' | sed 's/$2y/$2a/' && echo
+  cloud-sandbox-argocd:adminPasswordHash: $2a$xxx

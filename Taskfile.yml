@@ -66,6 +66,7 @@ tasks:
       - task: skooner
       - task: cert-manager
       - task: metrics-server
+      - task: argocd
       - task: kubeconfig
 
   eks:
@@ -102,6 +103,10 @@ tasks:
   cluster-autoscaler:
     cmds:
       - pulumi -C pulumi/cluster-autoscaler -s {{ .SANDBOX_ENVIRONMENT }} up -yfr
+
+  argocd:
+    cmds:
+      - pulumi -C pulumi/argocd -s {{ .SANDBOX_ENVIRONMENT }} up -yfr
 
   skooner:
     cmds:

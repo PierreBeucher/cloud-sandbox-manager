@@ -1,0 +1,3 @@
+name: cloud-sandbox-argocd
+runtime: nodejs
+description: ArgoCD via Helm chart
