@@ -46,6 +46,24 @@ const argocdCertificate = new kubernetes.apiextensions.CustomResource("argocd-ce
     provider: k8sProvider
 })
 
+// Traefik middleware to redirect HTTP to HTTPS
+const httpsRedirectMiddleware = new kubernetes.apiextensions.CustomResource("https-redirect-middleware", {
+    apiVersion: "traefik.io/v1alpha1",
+    kind: "Middleware",
+    metadata: {
+        name: "https-redirect",
+        namespace: argocdNamespace.metadata.name,
+    },
+    spec: {
+        redirectScheme: {
+            scheme: "https",
+            permanent: true
+        }
+    }
+}, {
+    provider: k8sProvider
+})
+
 const argocdRelease = new kubernetes.helm.v3.Release(`helm-chart-argocd`, {
     name: "argocd",
     chart: "argo-cd",
@@ -70,6 +88,10 @@ const argocdRelease = new kubernetes.helm.v3.Release(`helm-chart-argocd`, {
                 enabled: true,
                 annotations: {
                     "kubernetes.io/ingress.class": "traefik",
+
+                    // Traefik middleware to redirect HTTP to HTTPS
+                    "traefik.ingress.kubernetes.io/router.middlewares": 
+                        pulumi.interpolate`${argocdNamespace.metadata.name}-https-redirect@kubernetescrd`,
                 },
                 hosts: [fqdn],
                 extraTls: [{
