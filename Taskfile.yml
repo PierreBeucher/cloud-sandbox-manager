@@ -49,6 +49,7 @@ tasks:
 
   destroy-all:
     cmds:
+      - pulumi -C pulumi/argocd -s {{ .SANDBOX_ENVIRONMENT }} destroy -yrf
       - pulumi -C pulumi/traefik -s {{ .SANDBOX_ENVIRONMENT }} destroy -yrf
       - pulumi -C pulumi/skooner -s {{ .SANDBOX_ENVIRONMENT }} destroy -yrf
       - pulumi -C pulumi/cluster-autoscaler -s {{ .SANDBOX_ENVIRONMENT }} destroy -yrf
