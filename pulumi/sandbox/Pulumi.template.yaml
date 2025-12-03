@@ -17,7 +17,7 @@ config:
 
   # Instance config: public key, AMI, type...
   cloud-sandbox:sshPublicKey: ssh-ed25519 AAAA...
-  cloud-sandbox:instanceAmi: ami-0d03a150cf6c07022 # NixOS 22.11 eu-west-3 - https://nixos.org/download.html#nixos-amazon
+  cloud-sandbox:instanceAmi: ami-0d03a150cf6c07022 # NixOS 22.11 eu-west-3 - https://nixos.github.io/amis
   cloud-sandbox:instanceType: t3a.micro
   
   # Linux user and password user to connect on Sandbox via SSH
@@ -27,7 +27,7 @@ config:
   # Visual Studio Code config
   # Reachable on port 8080
   cloud-sandbox:codeServerEnabled: true
-  cloud-sandbox:codeServerHashedPassword: "$argon2i$v=19$m=4096,t=3,p=1$..."  # Create password with echo -n 'password' | npx argon2-cli -e
+  cloud-sandbox:codeServerHashedPassword: "$argon2i$v=19$m=4096,t=3,p=1$..."  # Create password with `echo -n 'password' | argon2 -e`
 
   # k3s config to have all instances form a k3s cluster
   # WARNING: Enabling k3s may break some Docker features as it changes IP routing for load balancing

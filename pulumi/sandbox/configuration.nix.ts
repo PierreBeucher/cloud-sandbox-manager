@@ -68,15 +68,13 @@ export function getConfigurationNix(args: NixConfigArgs): string {
       dive
       git
       awscli2
-      
-      # Python and packages (used by Ansible for post-deploy config and tests)
-      (python310.withPackages(ps: with ps; [
-        pip
-        docker
-        docker-compose # this does not fail on rebuild but does not provide "compose" Python module :(
-        pyyaml
-      ]))
 
+      # Python and packages (used by Ansible for post-deploy config and tests)
+      python313
+      python313Packages.pip
+      python313Packages.docker
+      python313Packages.pyyaml
+      
       # Network
       bind 
       traceroute
@@ -84,7 +82,6 @@ export function getConfigurationNix(args: NixConfigArgs): string {
       
       # Docker
       docker
-      docker-compose
       dive
 
       # K8S
@@ -152,11 +149,6 @@ export function getConfigurationNix(args: NixConfigArgs): string {
       '';
     };
 
-    # Required for code-server
-    nixpkgs.config.permittedInsecurePackages = [
-      "nodejs-16.20.0"
-    ];
-
     # Docker
     virtualisation.docker = {
       enable = true;
@@ -193,7 +185,7 @@ export function getConfigurationNix(args: NixConfigArgs): string {
       size = 4*1024;
     } ];
   
-    system.stateVersion = "24.05";
+    system.stateVersion = "25.05";
   }`
 
 }
