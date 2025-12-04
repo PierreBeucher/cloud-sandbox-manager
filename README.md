@@ -10,6 +10,7 @@
 - [Tests](#tests)
 - [Undeploy](#undeploy)
 - [Maintenance](#maintenance)
+  - [Update NixOS base image](#update-nixos-base-image)
 
 Cloud Sandbox deploys sandbox EC2 instances on AWS. I personally used them for training sessions (Docker, Ansible, etc.) but they can be used for pretty much anything. 
 
@@ -143,4 +144,16 @@ Bump versions:
   - `nix flake update`
 - [ ] NPM dependencies
   - `npm update`
-- [ ] Update base image
+- [ ] Update base image (see below)
+
+### Update NixOS base image
+
+- Update config `instanceAmi` with recent base AWS NixOS image (see https://nixos.github.io/amis)
+- Update passwords and other needed config
+- Deploy a single instance without Ansible (Ansible won't be able to connect as per lack of Python install)
+- Debug NixOS config:
+  - SSH into instance `ssh root@host`
+  - Try to build `sudo nixos-rebuild build`
+  - Fix NixOS config as needed: test locally `nano /etc/nixos/configuration.nix` and update `pulumi/sandbox/configuration.nix.ts` accordingly
+
+- Create a custom AMI from pre-built instance and use in config as `instanceAmi`
