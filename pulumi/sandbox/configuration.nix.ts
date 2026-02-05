@@ -116,6 +116,7 @@ export function getConfigurationNix(args: NixConfigArgs): string {
       port = 8099;
       auth = "password";
       hashedPassword = "${args.codeServer?.hashedPassword}";
+      disableWorkspaceTrust = true;
     };
 
     # Caddy reverse proxying to Code Server with TLS
@@ -184,8 +185,8 @@ export function getConfigurationNix(args: NixConfigArgs): string {
       device = "/var/lib/swapfile";
       size = 4*1024;
     } ];
-  
-    system.stateVersion = "25.05";
+
+    system.stateVersion = "25.11";
   }`
 
 }

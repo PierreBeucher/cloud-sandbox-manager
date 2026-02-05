@@ -56,7 +56,8 @@ const csiDriverAddon = new aws.eks.Addon("csi-driver-addon", {
     clusterName: clusterName,
     addonName: "aws-ebs-csi-driver",
     serviceAccountRoleArn: csiDriverRole.arn,
-    resolveConflicts: "OVERWRITE"
+    resolveConflictsOnCreate: "OVERWRITE",
+    resolveConflictsOnUpdate: "OVERWRITE"
 });
 
 // SA to allow admin access from sandbox instances
