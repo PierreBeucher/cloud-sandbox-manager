@@ -14,6 +14,7 @@ tasks:
   
   ec2-instances:
     cmds:
+      - pulumi -C pulumi/sandbox stack select --create -s {{ .SANDBOX_ENVIRONMENT }}
       - pulumi -C pulumi/sandbox -s {{ .SANDBOX_ENVIRONMENT }} up -yrf
 
   ansible:
@@ -79,10 +80,12 @@ tasks:
 
   eks-cluster:
     cmds:
+      - pulumi -C pulumi/eks stack select --create -s {{ .SANDBOX_ENVIRONMENT }}
       - pulumi -C pulumi/eks -s {{ .SANDBOX_ENVIRONMENT }} up -yfr
 
   eks-config:
     cmds:
+      - pulumi -C pulumi/eks-config stack select --create -s {{ .SANDBOX_ENVIRONMENT }}
       - pulumi -C pulumi/eks-config -s {{ .SANDBOX_ENVIRONMENT }} up -yfr
 
   ansible-eks:
@@ -91,26 +94,32 @@ tasks:
 
   traefik:
     cmds:
+      - pulumi -C pulumi/traefik stack select --create -s {{ .SANDBOX_ENVIRONMENT }}
       - pulumi -C pulumi/traefik -s {{ .SANDBOX_ENVIRONMENT }} up -yfr
 
   cert-manager:
     cmds:
+      - pulumi -C pulumi/cert-manager stack select --create -s {{ .SANDBOX_ENVIRONMENT }}
       - pulumi -C pulumi/cert-manager -s {{ .SANDBOX_ENVIRONMENT }} up -yfr
 
   metrics-server:
     cmds:
+      - pulumi -C pulumi/metrics-server stack select --create -s {{ .SANDBOX_ENVIRONMENT }}
       - pulumi -C pulumi/metrics-server -s {{ .SANDBOX_ENVIRONMENT }} up -yfr
 
   cluster-autoscaler:
     cmds:
+      - pulumi -C pulumi/cluster-autoscaler stack select --create -s {{ .SANDBOX_ENVIRONMENT }}
       - pulumi -C pulumi/cluster-autoscaler -s {{ .SANDBOX_ENVIRONMENT }} up -yfr
 
   argocd:
     cmds:
+      - pulumi -C pulumi/argocd stack select --create -s {{ .SANDBOX_ENVIRONMENT }}
       - pulumi -C pulumi/argocd -s {{ .SANDBOX_ENVIRONMENT }} up -yfr
 
   skooner:
     cmds:
+      - pulumi -C pulumi/skooner stack select --create -s {{ .SANDBOX_ENVIRONMENT }}
       - pulumi -C pulumi/skooner -s {{ .SANDBOX_ENVIRONMENT }} up -yfr
 
   kubeconfig:
