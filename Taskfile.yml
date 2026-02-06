@@ -50,6 +50,7 @@ tasks:
 
   destroy-all:
     cmds:
+      - pulumi -C pulumi/rancher -s {{ .SANDBOX_ENVIRONMENT }} destroy -yrf
       - pulumi -C pulumi/argocd -s {{ .SANDBOX_ENVIRONMENT }} destroy -yrf
       - pulumi -C pulumi/traefik -s {{ .SANDBOX_ENVIRONMENT }} destroy -yrf
       - pulumi -C pulumi/skooner -s {{ .SANDBOX_ENVIRONMENT }} destroy -yrf
@@ -69,6 +70,7 @@ tasks:
       - task: cert-manager
       - task: metrics-server
       - task: argocd
+      - task: rancher
       - task: kubeconfig
 
   eks:
@@ -121,6 +123,11 @@ tasks:
     cmds:
       - pulumi -C pulumi/skooner stack select --create -s {{ .SANDBOX_ENVIRONMENT }}
       - pulumi -C pulumi/skooner -s {{ .SANDBOX_ENVIRONMENT }} up -yfr
+
+  rancher:
+    cmds:
+      - pulumi -C pulumi/rancher stack select --create -s {{ .SANDBOX_ENVIRONMENT }}
+      - pulumi -C pulumi/rancher -s {{ .SANDBOX_ENVIRONMENT }} up -yfr
 
   kubeconfig:
     cmds:

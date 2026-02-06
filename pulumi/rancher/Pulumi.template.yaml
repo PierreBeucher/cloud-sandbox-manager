@@ -1,0 +1,4 @@
+config:
+  aws:region: eu-west-3
+  cloud-sandbox-rancher:environment: crafteo
+  cloud-sandbox-rancher:fqdn: rancher.k8s.crafteo.io
