@@ -1,0 +1,44 @@
+# Cloud Sandbox Manager - Project Context
+
+## Overview
+
+This project manages cloud sandbox deployments on AWS using a combination of infrastructure-as-code tools and automation:
+
+- **Pulumi**: Primary infrastructure-as-code tool for deploying AWS resources (EC2 instances, EKS clusters, Kubernetes components)
+- **Ansible**: Configuration management and orchestration for provisioning EC2 instances and setting up services
+- **Nix Shell**: Development environment providing all required dependencies (Pulumi, Ansible, kubectl, etc.) via `flake.nix`
+- **Taskfile**: Task runner (`Taskfile.yml`) orchestrating deployment workflows combining Pulumi and Ansible
+
+The project deploys sandbox EC2 instances on AWS for training sessions, providing:
+- Human-friendly domain names (e.g., `alice.training.crafteo.io`)
+- Code-server on port 8080
+- SSH access on port 22
+- Docker, Docker Compose, Git, and other tooling
+- Optional EKS Kubernetes clusters with various add-ons
+
+Each instance is provisioned using NixOS, and infrastructure is managed through multiple Pulumi stacks.
+
+## File Structure
+
+### Root Directories
+
+- `pulumi/` - All Pulumi projects (TypeScript-based infrastructure code)
+- `ansible/` - Ansible playbooks and inventories for instance provisioning
+- `scripts/` - Shell scripts (e.g., `create-ami.sh` for AMI creation)
+- `flake.nix` - Nix flake defining the development shell environment
+- `Taskfile.yml` - Task runner configuration for deployment workflows
+
+### Pulumi Projects
+
+Each Pulumi project is located in `pulumi/<project-name>/` and contains its own `Pulumi.yaml`, stack configuration files (`Pulumi.<environment>.yaml`), and TypeScript code (`index.ts`):
+
+- `sandbox/` - EC2 instances deployment (main sandbox infrastructure)
+- `eks/` - EKS cluster creation
+- `eks-config/` - EKS cluster configuration
+- `argocd/` - ArgoCD deployment
+- `traefik/` - Traefik ingress controller
+- `cert-manager/` - Certificate management
+- `metrics-server/` - Kubernetes metrics server
+- `cluster-autoscaler/` - EKS cluster autoscaler
+- `skooner/` - Skooner Kubernetes dashboard
+- `components/` - Shared Pulumi components (e.g., service accounts)
