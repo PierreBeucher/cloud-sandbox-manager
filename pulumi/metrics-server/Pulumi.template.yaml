@@ -1,0 +1,2 @@
+config:
+  cloud-sandbox-metrics-server:environment: crafteo
