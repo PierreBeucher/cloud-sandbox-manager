@@ -182,7 +182,7 @@ new eks.ManagedNodeGroup("nodegroup-zone-a", {
     subnetIds: [ subnet_a.id ],
 })
 
-const ng_b = new eks.ManagedNodeGroup("nodegroup-zone-b", {
+new eks.ManagedNodeGroup("nodegroup-zone-b", {
     ...nodegroupCommonArgs,
     subnetIds: [ subnet_b.id ],
 })
