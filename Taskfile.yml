@@ -63,6 +63,11 @@ tasks:
       - task: stop-ec2-instances
       - task: k8s-nodegroups-disable
 
+  start-all:
+    cmds:
+      - task: k8s-nodegroups-enable
+      - task: start-ec2-instances
+
   destroy-all:
     cmds:
       - pulumi -C pulumi/rancher -s {{ .SANDBOX_ENVIRONMENT }} destroy -yrf
