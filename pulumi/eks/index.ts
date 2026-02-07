@@ -10,6 +10,7 @@ const config = new pulumi.Config();
 const environment = config.require("environment")
 const adminIamRoles = config.getObject<string[]>("adminIamRoles") ?? []
 const extraNodeSecurityGroupRules = config.getObject<Omit<aws.ec2.SecurityGroupRuleArgs, "securityGroupId">[]>("extraNodeSecurityGroupRules") ?? []
+const nodegroupDisable = config.getBoolean("nodegroupDisable") ?? false
 
 const commonTags = { 
     Name: `cloud-sandbox-${environment}-eks`,
@@ -177,15 +178,20 @@ const nodegroupCommonArgs: eks.ManagedNodeGroupOptions = {
     }
 }
 
-new eks.ManagedNodeGroup("nodegroup-zone-a", {
-    ...nodegroupCommonArgs,
-    subnetIds: [ subnet_a.id ],
-})
+// don't create nodegroups if they are disabled
+// specifically check for undefined to avoid "!nodegroupDisable" being true if undefined
+// use to "stop" cluster when not in use to avoid costs
+if(nodegroupDisable === undefined || !nodegroupDisable) {
+    new eks.ManagedNodeGroup("nodegroup-zone-a", {
+        ...nodegroupCommonArgs,
+        subnetIds: [ subnet_a.id ],
+    })
 
-new eks.ManagedNodeGroup("nodegroup-zone-b", {
-    ...nodegroupCommonArgs,
-    subnetIds: [ subnet_b.id ],
-})
+    new eks.ManagedNodeGroup("nodegroup-zone-b", {
+        ...nodegroupCommonArgs,
+        subnetIds: [ subnet_b.id ],
+    })
+}
 
 const clusterCertificate = cluster.eksCluster.identities.apply(identities => tls.getCertificateOutput({
     url: identities[0].oidcs?.[0]?.issuer,

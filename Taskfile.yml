@@ -48,6 +48,21 @@ tasks:
     cmds:
       - ansible-playbook ansible/playbook-start.yml -i ansible/inventories/$(pulumi -C pulumi/sandbox -s {{ .SANDBOX_ENVIRONMENT }} stack --show-name).yml
 
+  k8s-nodegroups-disable:
+    cmds:
+      - pulumi -C pulumi/eks -s {{ .SANDBOX_ENVIRONMENT }} config set nodegroupDisable true
+      - pulumi -C pulumi/eks -s {{ .SANDBOX_ENVIRONMENT }} up -yfr
+
+  k8s-nodegroups-enable:
+    cmds:
+      - pulumi -C pulumi/eks -s {{ .SANDBOX_ENVIRONMENT }} config set nodegroupDisable false
+      - pulumi -C pulumi/eks -s {{ .SANDBOX_ENVIRONMENT }} up -yfr
+
+  stop-all:
+    cmds:
+      - task: stop-ec2-instances
+      - task: k8s-nodegroup-disable
+
   destroy-all:
     cmds:
       - pulumi -C pulumi/rancher -s {{ .SANDBOX_ENVIRONMENT }} destroy -yrf
