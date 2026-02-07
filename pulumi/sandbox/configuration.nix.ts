@@ -89,6 +89,7 @@ export function getConfigurationNix(args: NixConfigArgs): string {
       kubectl
       kubernetes-helm
       kind
+      rancher
 
       # Node & TS
       nodejs_20
