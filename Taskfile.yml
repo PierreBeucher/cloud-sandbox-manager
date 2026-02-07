@@ -61,7 +61,7 @@ tasks:
   stop-all:
     cmds:
       - task: stop-ec2-instances
-      - task: k8s-nodegroup-disable
+      - task: k8s-nodegroups-disable
 
   destroy-all:
     cmds:
