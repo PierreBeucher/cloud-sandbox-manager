@@ -1,0 +1,15 @@
+config:
+  cloud-sandbox-cert-manager:environment: crafteo
+
+  # Email used to register with ACME server to generate TLS certificates
+  cloud-sandbox-cert-manager:acmeEmail: kubernetes-training@crafteo.io
+
+  # ClusterIssuer configuration
+  # Default to use Let's Encrypt
+  # Possible to use ZeroSSL with EAB creds
+  # cloud-sandbox-cert-manager:clusterIssuerAcmeFlavor: letsencrypt # or zerossl
+  
+  # Required if clusterIssuerAcmeFlavor is zerossl
+  # both key id and mac key are required
+  # cloud-sandbox-cert-manager:acmeEabKeyId: xxx
+  # cloud-sandbox-cert-manager:acmeEabMacKey: xxx

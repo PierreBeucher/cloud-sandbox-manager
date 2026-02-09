@@ -11,7 +11,7 @@ const k8sProvider = getKubernetesProvider()
 
 // use ClusterIssuer from cert-manager stack
 const certManagerStack = getPulumiStackRef({ name: "cloud-sandbox-cert-manager", environment: environment })
-const clusterIssuerName = certManagerStack.getOutput("stagingClusterIssuerName") as pulumi.Output<string>
+const clusterIssuerName = certManagerStack.getOutput("clusterIssuerName") as pulumi.Output<string>
 
 pulumi.all([clusterIssuerName]).apply(([clusterIssuerName]) => {
     console.log(`Cluster issuer name: ${clusterIssuerName}`)
