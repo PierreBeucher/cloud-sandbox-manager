@@ -1,10 +1,14 @@
 import * as pulumi from "@pulumi/pulumi";
 import * as k8s from "@pulumi/kubernetes";
-import { getKubernetesProvider } from "../utils"
+import { getKubernetesProvider, getPulumiStackRef } from "../utils"
 
 const config = new pulumi.Config();
 const environment = config.require("environment")
 const fqdn = config.require("fqdn")
+
+// Get ClusterIssuer from cert-manager stack
+const certManagerStack = getPulumiStackRef({ name: "cloud-sandbox-cert-manager", environment: environment })
+const clusterIssuerName = certManagerStack.getOutput("clusterIssuerName") as pulumi.Output<string>
 
 const k8sProvider = getKubernetesProvider()
 
@@ -37,6 +41,12 @@ const rancherRelease = new k8s.helm.v3.Release("rancher", {
         ingress: {
             enabled: true,
             ingressClassName: "traefik",
+
+            // override Ingress annotations to use our own Cert Manager ClusterIssuer
+            extraAnnotations: clusterIssuerName.apply(issuerName => ({
+                "cert-manager.io/issuer-kind": "ClusterIssuer",
+                "cert-manager.io/issuer": issuerName,
+            }))
         },
         tls: "ingress",
         bootstrapPassword: "Docker2026!",
