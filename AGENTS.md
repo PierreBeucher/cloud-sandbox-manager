@@ -18,6 +18,10 @@ and every tool runs inside a **Nix flake dev shell**.
 
 👉 **Read `README.md` first** for high-level usage, deployment and maintenance docs.
 
+## Development and Nix Flake
+
+All binaries are available via Nix Flake, see `flake.nix`. If you already run under the proper Nix flake, nothing to do. Otherwise every development commands (Pulumi, tasks, etc.) must be run under a Nix dev sgell, eg `nix develop -c task docker`
+
 ## Environment rules
 
 - **ALL commands must run in the Nix dev shell.** Prefix non-interactive commands with
