@@ -25,7 +25,7 @@ const certManagerRelease = new kubernetes.helm.v3.Release(`helm-chart-cert-manag
     values: {
         installCRDs: true
     },
-    version: "1.18.2",
+    version: "1.21.2",
     namespace: certmanagerNamespace.metadata.name,
     repositoryOpts: {
         repo: "https://charts.jetstack.io",

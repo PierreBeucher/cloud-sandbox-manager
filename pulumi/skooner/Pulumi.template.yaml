@@ -1,3 +1,0 @@
-config:
-  cloud-sandbox-skooner:environment: crafteo
-  cloud-sandbox-skooner:fqdn: k8s.crafteo.io

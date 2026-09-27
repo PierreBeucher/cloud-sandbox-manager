@@ -100,7 +100,7 @@ const clusterAutoscalerServiceAccount = new k8s.core.v1.ServiceAccount("cluster-
 const clusterAutoscaler = new k8s.helm.v3.Release("cluster-autoscaler", {
     name: "cluster-autoscaler",
     chart: "cluster-autoscaler",
-    version: "9.50.1",
+    version: "9.59.0",
     repositoryOpts: {
         repo: "https://kubernetes.github.io/autoscaler",
     },

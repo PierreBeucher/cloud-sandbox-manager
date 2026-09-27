@@ -37,7 +37,7 @@ const traefikRelease = new k8s.helm.v3.Release("traefik", {
             }
         }
     },
-    version: "35.2.0"
+    version: "41.6.0"
 }, {
     provider: k8sProvider,
     deleteBeforeReplace: true,

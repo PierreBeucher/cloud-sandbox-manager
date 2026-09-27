@@ -101,7 +101,7 @@ const argocdRelease = new kubernetes.helm.v3.Release(`helm-chart-argocd`, {
             }
         }
     },
-    version: "8.3.5",
+    version: "10.9.2",
     namespace: argocdNamespace.metadata.name,
     repositoryOpts: {
         repo: "https://argoproj.github.io/argo-helm",

@@ -30,7 +30,7 @@ const rancherNamespace = new k8s.core.v1.Namespace("rancher-namespace", {
 const rancherRelease = new k8s.helm.v3.Release("rancher", {
     name: "rancher",
     chart: "rancher",
-    version: "2.13.2",
+    version: "2.15.2",
     repositoryOpts: {
         repo: "https://releases.rancher.com/server-charts/stable",
     },

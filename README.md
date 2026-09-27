@@ -10,6 +10,7 @@
 - [Tests](#tests)
 - [Undeploy](#undeploy)
 - [Maintenance](#maintenance)
+  - [Version bumps and updates](#version-bumps-and-updates)
   - [Update NixOS base image](#update-nixos-base-image)
 
 Cloud Sandbox deploys sandbox EC2 instances on AWS. I personally used them for training sessions (Docker, Ansible, etc.) but they can be used for pretty much anything. 
@@ -133,18 +134,27 @@ task destroy-all
 
 ## Maintenance
 
+### Version bumps and updates
+
 Bump versions:
 
-- [ ] Cert Manager
-- [ ] Cluster Autoscaler
-- [ ] EKS
-- [ ] Metrics Server
-- [ ] Traefik
 - [ ] Nix Flake
   - `nix flake update`
+- [ ] ArgoCD: Helm chart version in `pulumi/argocd/index.ts`
+- [ ] Cert Manager: Helm chart version in `pulumi/cert-manager/index.ts`
+- [ ] Cluster Autoscaler: Helm chart version in `pulumi/cluster-autoscaler/index.ts`
+- [ ] EKS: Kubernetes version in `pulumi/eks/index.ts`
+- [ ] Metrics Server: Helm chart version in `pulumi/metrics-server/index.ts`
+- [ ] Rancher: Helm chart version in `pulumi/rancher/index.ts`
+- [ ] Traefik: Helm chart version in `pulumi/traefik/index.ts`
 - [ ] NPM dependencies
   - `npm update`
 - [ ] Update base image (see below)
+
+Once versions are updated, deploy the updated sandbox (EKS cluster, K8S tooling, EC2 instances) with:
+
+- `task k8s-all`: deploy EKS cluster and K8S tooling (Traefik, Cert Manager, Cluster Autoscaler, Metrics Server, ArgoCD, Rancher)
+- `task docker`: deploy sandbox EC2 instances and configure them via Ansible
 
 ### Update NixOS base image
 

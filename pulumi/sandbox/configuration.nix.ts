@@ -92,7 +92,7 @@ export function getConfigurationNix(args: NixConfigArgs): string {
       rancher
 
       # Node & TS
-      nodejs_20
+      nodejs_22
       typescript
 
     ];
