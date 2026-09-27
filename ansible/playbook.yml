@@ -20,6 +20,12 @@
       become: true
       ansible.builtin.command: 
         cmd: nixos-rebuild switch
+      register: nixos_rebuild_result
+      # Can fail transiently when another rebuild runs concurrently on the host
+      # (lock conflict or systemd transient unit already loaded): retry a few times
+      retries: 3
+      delay: 30
+      until: nixos_rebuild_result is not failed
 
 # Sandbox additional config
 - hosts: all
