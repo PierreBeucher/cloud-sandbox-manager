@@ -1,6 +1,7 @@
-# Test Docker training setup for https://docker.training.crafteo.io/ and https://github.com/PierreBeucher/example-voting-app
-# Deploy Example Voting App and other training related applications on sandbox instance and check they're as expected
-# Ensuring trainee will eb able to perform workshops and exercises during training
+# Test Docker sandbox deployed by `task docker`
+# Validates the Example Voting App Docker Compose stack and additional training stacks (ELK, Prometheus)
+# on plain HTTP non-standard ports. TLS/HTTPS (Traefik + Let's Encrypt on 80/443) is NOT tested here:
+# sandbox TLS termination is handled by the host Caddy proxy and validated separately.
 - hosts: all
   remote_user: "{{ sandbox_user }}"
   tasks:
@@ -51,9 +52,10 @@
       delay: 5
       until: result_task is not failed # may take a few seconds to start
 
-    # Traefik with Let's Encrypt certs
+    # TLS setup and checks: skipped for now (sandbox TLS via Caddy front proxy is under rework)
+    # Re-enable with: ansible-playbook test/test-docker.yml --tags traefik
     - name: create .env var for Traefik with service URL
-      tags: [ traefik ]
+      tags: [ traefik, never ]
       ansible.builtin.copy:
         content: |
           VOTE_URL=vote.{{ fqdn }}
@@ -63,19 +65,19 @@
     # Use Let's Encrypt Staging root CA to validate HTTPS config
     # See https://letsencrypt.org/docs/staging-environment/
     - name: Download Let's Encrypt staging root CA
-      tags: [ traefik ]
+      tags: [ traefik, never ]
       ansible.builtin.get_url:
         url: https://letsencrypt.org/certs/staging/letsencrypt-stg-root-x1.pem
         dest: /tmp/letsencrypt-stg-root-x1.pem
 
     - name: deploy with Traefik and Certificates
-      tags: [ traefik ]
+      tags: [ traefik, never ]
       ansible.builtin.command: 
         cmd: docker compose -f docker-compose.yml -f resources/traefik.yml up -d
         chdir: "{{ ansible_env.HOME }}/example-voting-app"
 
     - name: check Vote HTTPS
-      tags: [ traefik ]
+      tags: [ traefik, never ]
       ansible.builtin.uri:
         url: https://vote.{{ fqdn }}
         ca_path: /tmp/letsencrypt-stg-root-x1.pem
@@ -85,7 +87,7 @@
       until: vote_uri is not failed # may take a few seconds to be ready
     
     - name: check Result HTTPS
-      tags: [ traefik ]
+      tags: [ traefik, never ]
       ansible.builtin.uri:
         url: https://result.{{ fqdn }}
         ca_path: /tmp/letsencrypt-stg-root-x1.pem
@@ -98,7 +100,7 @@
     - name: query VS Code URL
       tags: [ code ]
       ansible.builtin.uri:
-        url: http://{{ fqdn }}:8080
+        url: http://{{ fqdn }}:8099
       register: vscode_uri
       retries: 6
       delay: 10
@@ -110,6 +112,18 @@
       ansible.builtin.command: 
         cmd: make elk
         chdir: "{{ ansible_env.HOME }}/example-voting-app"
+
+    - name: check ELK containers are running
+      tags: [ elk ]
+      ansible.builtin.command:
+        cmd: docker compose -f resources/elk-stack.yml ps --services --status running
+        chdir: "{{ ansible_env.HOME }}/example-voting-app"
+      register: elk_containers
+      changed_when: false
+      failed_when: >
+        not ('elasticsearch' in elk_containers.stdout_lines
+             and 'kibana' in elk_containers.stdout_lines
+             and 'logstash' in elk_containers.stdout_lines)
 
     - name: check Kibana URL
       tags: [ elk ]
@@ -164,6 +178,19 @@
       ansible.builtin.command: 
         cmd: docker compose up -d
         chdir: "{{ ansible_env.HOME }}/prometheus"
+
+    - name: check Prometheus stack containers are running
+      tags: [ prom ]
+      ansible.builtin.command:
+        cmd: docker compose ps --services --status running
+        chdir: "{{ ansible_env.HOME }}/prometheus"
+      register: prom_containers
+      changed_when: false
+      failed_when: >
+        not ('prometheus' in prom_containers.stdout_lines
+             and 'grafana' in prom_containers.stdout_lines
+             and 'alertmanager' in prom_containers.stdout_lines
+             and 'node-exporter' in prom_containers.stdout_lines)
 
     - name: check Grafana URL
       tags: [ prom ]

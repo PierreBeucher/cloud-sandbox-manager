@@ -1,5 +1,18 @@
+# Test EKS sandbox deployed by `task k8s-all`
+# Validates cluster access, a hello-world test workload with TLS (via cert-manager + Traefik ingress),
+# and reachability of Rancher and ArgoCD web UIs.
 - hosts: all
   remote_user: "{{ sandbox_user }}"
+  vars:
+    # Hosted zone domain used by the K8S stack (Traefik ingress, wildcard *.ZONE DNS record)
+    k8s_hosted_zone: k8s.crafteo.io
+    # ClusterIssuer deployed by cert-manager stack (ZeroSSL flavor by default)
+    k8s_cluster_issuer: cluster-issuer
+
+    hello_fqdn: "hello.{{ k8s_hosted_zone }}"
+    rancher_fqdn: "rancher.{{ k8s_hosted_zone }}"
+    argocd_fqdn: "argocd.{{ k8s_hosted_zone }}"
+
   tasks:
 
     - name: check aws eks cluster list
@@ -9,7 +22,137 @@
     - name: check aws eks cluster describe
       command: aws eks describe-cluster --name cloud-sandbox-{{ sandbox_environment }}
       changed_when: false
-    
+
     - name: check kubectl for eks
       command: kubectl -n kube-system get configmap aws-auth
       changed_when: false
+
+    #
+    # Hello world test workload
+    # Deployment + Service + Ingress with TLS certificate issued by cert-manager
+    # Image nginxdemos/hello is published by official NGINX (F5) team on Docker Hub
+    #
+
+    - name: deploy hello world test app (deployment, service, ingress + certificate)
+      ansible.builtin.command:
+        cmd: kubectl apply -f -
+        stdin: |
+          apiVersion: v1
+          kind: Namespace
+          metadata:
+            name: hello-world
+          ---
+          apiVersion: apps/v1
+          kind: Deployment
+          metadata:
+            name: hello-world
+            namespace: hello-world
+            labels:
+              app: hello-world
+          spec:
+            replicas: 1
+            selector:
+              matchLabels:
+                app: hello-world
+            template:
+              metadata:
+                labels:
+                  app: hello-world
+              spec:
+                containers:
+                  - name: hello-world
+                    image: nginxdemos/hello:plain-text
+                    ports:
+                      - containerPort: 80
+          ---
+          apiVersion: v1
+          kind: Service
+          metadata:
+            name: hello-world
+            namespace: hello-world
+          spec:
+            selector:
+              app: hello-world
+            ports:
+              - port: 80
+                targetPort: 80
+          ---
+          apiVersion: networking.k8s.io/v1
+          kind: Ingress
+          metadata:
+            name: hello-world
+            namespace: hello-world
+            annotations:
+              # cert-manager ingress-shim creates a Certificate from this annotation
+              cert-manager.io/cluster-issuer: {{ k8s_cluster_issuer }}
+          spec:
+            ingressClassName: traefik
+            tls:
+              - hosts:
+                  - {{ hello_fqdn }}
+                secretName: hello-world-tls
+            rules:
+              - host: {{ hello_fqdn }}
+                http:
+                  paths:
+                    - path: /
+                      pathType: Prefix
+                      backend:
+                        service:
+                          name: hello-world
+                          port:
+                            number: 80
+      changed_when: true
+
+    - name: wait for hello world deployment to be ready
+      ansible.builtin.command:
+        cmd: kubectl rollout status deployment/hello-world -n hello-world --timeout=180s
+      register: rollout_result
+      retries: 3
+      delay: 10
+      until: rollout_result is not failed
+
+    - name: check hello world containers are running
+      ansible.builtin.command:
+        cmd: kubectl get pods -n hello-world -l app=hello-world --field-selector=status.phase=Running --no-headers
+      register: hello_pods
+      changed_when: false
+      failed_when: hello_pods.stdout_lines | length == 0
+
+    # Certificate is issued by ZeroSSL via HTTP-01 challenge (may take a minute)
+    - name: check hello world TLS certificate is ready
+      ansible.builtin.command:
+        cmd: kubectl get certificate hello-world-tls -n hello-world -o jsonpath='{.status.conditions[?(@.type=="Ready")].status}'
+      register: cert_status
+      changed_when: false
+      retries: 24
+      delay: 10
+      until: cert_status.stdout == "True"
+
+    - name: check hello world ingress HTTPS
+      ansible.builtin.uri:
+        url: https://{{ hello_fqdn }}
+      register: hello_uri
+      retries: 12
+      delay: 10
+      until: hello_uri is not failed
+
+    #
+    # Simple pings on Rancher and ArgoCD web UIs
+    #
+
+    - name: ping ArgoCD
+      ansible.builtin.uri:
+        url: https://{{ argocd_fqdn }}
+      register: argocd_ping
+      retries: 6
+      delay: 10
+      until: argocd_ping is not failed
+
+    - name: ping Rancher
+      ansible.builtin.uri:
+        url: https://{{ rancher_fqdn }}
+      register: rancher_ping
+      retries: 6
+      delay: 10
+      until: rancher_ping is not failed
